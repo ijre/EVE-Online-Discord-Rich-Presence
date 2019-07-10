@@ -45,7 +45,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(97, 63);
+            this.button1.Location = new System.Drawing.Point(106, 63);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(95, 26);
             this.button1.TabIndex = 0;
@@ -55,7 +55,7 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(65, 12);
+            this.textBox1.Location = new System.Drawing.Point(79, 12);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
@@ -67,7 +67,7 @@
             // 
             this.checkBox1.AutoSize = true;
             this.checkBox1.BackColor = System.Drawing.SystemColors.Window;
-            this.checkBox1.Location = new System.Drawing.Point(175, 101);
+            this.checkBox1.Location = new System.Drawing.Point(184, 101);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(15, 14);
             this.checkBox1.TabIndex = 2;
@@ -76,7 +76,7 @@
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(97, 98);
+            this.textBox2.Location = new System.Drawing.Point(106, 98);
             this.textBox2.Multiline = true;
             this.textBox2.Name = "textBox2";
             this.textBox2.ReadOnly = true;
@@ -86,7 +86,7 @@
             // 
             // textBox3
             // 
-            this.textBox3.Location = new System.Drawing.Point(97, 163);
+            this.textBox3.Location = new System.Drawing.Point(106, 163);
             this.textBox3.Multiline = true;
             this.textBox3.Name = "textBox3";
             this.textBox3.ReadOnly = true;
@@ -97,7 +97,7 @@
             // englishCB
             // 
             this.englishCB.AutoSize = true;
-            this.englishCB.Location = new System.Drawing.Point(65, 248);
+            this.englishCB.Location = new System.Drawing.Point(74, 248);
             this.englishCB.Name = "englishCB";
             this.englishCB.Size = new System.Drawing.Size(60, 17);
             this.englishCB.TabIndex = 7;
@@ -108,7 +108,7 @@
             // ingameCB
             // 
             this.ingameCB.AutoSize = true;
-            this.ingameCB.Location = new System.Drawing.Point(175, 248);
+            this.ingameCB.Location = new System.Drawing.Point(184, 248);
             this.ingameCB.Name = "ingameCB";
             this.ingameCB.Size = new System.Drawing.Size(64, 17);
             this.ingameCB.TabIndex = 8;
@@ -128,7 +128,7 @@
             // 
             // textBox4
             // 
-            this.textBox4.Location = new System.Drawing.Point(198, 63);
+            this.textBox4.Location = new System.Drawing.Point(207, 63);
             this.textBox4.Multiline = true;
             this.textBox4.Name = "textBox4";
             this.textBox4.ReadOnly = true;
@@ -149,7 +149,6 @@
             // 
             this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
             this.notifyIcon1.Text = "EVE Online Discord RPC";
-            this.notifyIcon1.Visible = true;
             this.notifyIcon1.DoubleClick += new System.EventHandler(this.NotifyIcon1_DoubleClick);
             // 
             // Form1

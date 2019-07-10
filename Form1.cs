@@ -41,17 +41,33 @@ namespace eve_discord_rpc
             DiscordRpcClient client = new DiscordRpcClient("598364146727124993");
             client.SetPresence(new RichPresence { Details = "Jouer à EVE, sous le nom: " + charName, State = state });
             client.Initialize();
-            //textBox4.Text = "Presence updated!";
-            Thread.Sleep(5000);
+#if _NDEBUG
+            textBox4.Text = "Presence updated!";
+#endif
+            Thread.Sleep(15000);
             client.ClearPresence();
             Application.ExitThread();
         }
 
         private void Loop(string fileDir)
         {
-            //textBox4.Text = "Parsing file...";
+#if _NDEBUG
+            textBox4.Text = "Parsing file...";
+#endif
+            try
+            {
+                Process tryProcess = Process.GetProcessesByName("exefile")[0];
+            }
+            catch
+            {
+                MessageBox.Show("Fatal error: Could not find EVE Online process, closing.", "Fatal error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             Process process = Process.GetProcessesByName("exefile")[0];
 
+            try
+            { File.ReadAllText(fileDir).ToString(); }
+            catch { Application.Restart(); }
+            //99% likely that a crash here is someone closing the file dialog wtihout selecting a file, just make it restart
             var data = File.ReadAllText(fileDir).ToString();
             var charName = process.MainWindowTitle.Substring(6);
 
@@ -60,31 +76,52 @@ namespace eve_discord_rpc
                 //TODO: game is fucked so i cant switch it off of french, so i need to find a gamelog in english
                 else if (ingameCB.Checked)
                 {
-                    if (data.LastIndexOf("Part de") > data.LastIndexOf("acceptée"))
+                    if (data.LastIndexOf("Saute") > data.LastIndexOf("amarrage") && data.LastIndexOf("Saute") > data.LastIndexOf("Part de"))
                     {
-                        var half = data.Substring(data.LastIndexOf("Part de"), data.IndexOf("[", data.LastIndexOf("Part de")) + 1 - data.LastIndexOf("Part de"));
-                        //this creates a substring from "Part de" (departing) and ends it at the first instance of [ afterwards
-                        var mouthfull = half.IndexOf("\"", half.IndexOf("\"") + (half.IndexOf("\"", half.IndexOf("\"") + 1)));
-                        //this skips past 3 quotations to find a 4th quotation mark (the 4th mark marks the beginning of the solar system name)
-
-                        //i know these are ungodly painful to look at but i couldnt think of a better way, and you cant use absolute values because different station name lengths and all that
+                        Thread.Sleep(1000);
+                        var half = data.Substring(data.LastIndexOf("Saute"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Saute")) + 1) - data.LastIndexOf("Saute"));
+                        //this creates a substring from "Saute" (jump) and ends it at the second instance of * afterwards
+                        var mouthfull = half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("\"", (half.IndexOf("\"") + 1)) + 1));
+                        //this skips past 2 quotations to find a 3rd quotation mark (the 3rd mark marks the beginning of the solar system name)
                         var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
                         Thread presenceThread = new Thread(() => PresenceUpdate(charName, "En volant dans: " + full));
                         presenceThread.Start();
                         presenceThread.Join();
-                        Loop(fileDir);
+                        Application.ExitThread();
                     }
-                    var location1 = data.LastIndexOf("<");
-                    var location2 = data.LastIndexOf(">");
-
-                    if (data.Substring(data.IndexOf("]", location2) + 42, 8) == "acceptée")
+                    else if (data.LastIndexOf("Part de") > data.LastIndexOf("amarrage") && data.LastIndexOf("Part de") > data.LastIndexOf("Saute"))
                     {
-                        var half = data.Substring(location1, location2 - location1);
-                        var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
-                        Thread presenceThread = new Thread(() => PresenceUpdate(charName, "Amarré(e) à la station " + full));
+                        Thread.Sleep(1000);
+                        var half = data.Substring(data.LastIndexOf("Part de"), data.IndexOf(".", data.LastIndexOf("Part de")) + 1 - data.LastIndexOf("Part de"));
+                        var mouthfull = half.IndexOf("\"", half.IndexOf("\"") + (half.IndexOf("\"", half.IndexOf("\"") + 1)));
+                        //and this skips past 3 quotations to find a 4th quotation mark (the 4th mark marks the beginning of the solar system name)
+                        //i know all of this is ungodly painful to look at but i couldnt think of a better way, and you cant use absolute values because different system name lengths and all that
+                        var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
+                        Thread presenceThread = new Thread(() => PresenceUpdate(charName, "En volant dans: " + full));
                         presenceThread.Start();
                         presenceThread.Join();
-                        Loop(fileDir);
+                        Application.ExitThread();
+                    }
+                    else if (data.LastIndexOf("amarrage") > data.LastIndexOf("Part de") || data.LastIndexOf("acceptée") > data.LastIndexOf("Saute"))
+                    {
+                        Thread.Sleep(1000);
+                        if (data.Substring(data.LastIndexOf("amarrage")).IndexOf("amarrage a été acceptée. Votre vaisseau va être remorqué jusqu'à la station.") == 0)
+                        {
+                            var half = data.Substring(data.LastIndexOf("<", data.LastIndexOf("amarrage") - 1), data.LastIndexOf(">", data.LastIndexOf("amarrage") - 1) - data.LastIndexOf("<", data.LastIndexOf("amarrage")));
+                            var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
+                            Thread presenceThread = new Thread(() => PresenceUpdate(charName, "Amarré(e) à la station: " + full));
+                            presenceThread.Start();
+                            presenceThread.Join();
+                            Application.ExitThread();
+                        }
+                        else
+                        {
+                            Application.ExitThread();
+                        }
+                    }
+                    else
+                    {
+                        Application.ExitThread();
                     }
                 }
         }
@@ -102,8 +139,16 @@ namespace eve_discord_rpc
                 AddExtension = true,
             };
             diag.ShowDialog();
-            Thread loopThread = new Thread(() => Loop(diag.FileName));
+            Thread loopThread = new Thread(() => LoopBegin(diag.FileName));
             loopThread.Start();
+        }
+
+        private void LoopBegin(string fileName)
+        {
+            Thread loopThread = new Thread(() => Loop(fileName));
+            loopThread.Start();
+            loopThread.Join();
+            LoopBegin(fileName);
         }
 
         private void FolderCheckem()
@@ -162,6 +207,7 @@ namespace eve_discord_rpc
             Thread.Sleep(50);
             client.Dispose();
             Process process = Process.GetProcessesByName("eve-discord-rpc")[0];
+            notifyIcon1.Visible = false;
             process.Kill();
         }
 
