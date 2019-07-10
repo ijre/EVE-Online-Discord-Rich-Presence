@@ -43,7 +43,7 @@ namespace eve_discord_rpc
             client.Initialize();
             //textBox4.Text = "Presence updated!";
             Thread.Sleep(5000);
-            client.Dispose();
+            client.ClearPresence();
             Application.ExitThread();
         }
 
@@ -57,22 +57,26 @@ namespace eve_discord_rpc
 
             if (checkBox1.Checked)
                 if (englishCB.Checked) { }
-                //TODO: game is fucked and i cant switch it off of french, so i need to find a gamelog in english
+                //TODO: game is fucked so i cant switch it off of french, so i need to find a gamelog in english
                 else if (ingameCB.Checked)
                 {
-                    var location1 = data.LastIndexOf("<");
-                    var location2 = data.LastIndexOf(">");
-
                     if (data.LastIndexOf("Part de") > data.LastIndexOf("acceptée"))
                     {
                         var half = data.Substring(data.LastIndexOf("Part de"), data.IndexOf("[", data.LastIndexOf("Part de")) + 1 - data.LastIndexOf("Part de"));
+                        //this creates a substring from "Part de" (departing) and ends it at the first instance of [ afterwards
                         var mouthfull = half.IndexOf("\"", half.IndexOf("\"") + (half.IndexOf("\"", half.IndexOf("\"") + 1)));
+                        //this skips past 3 quotations to find a 4th quotation mark (the 4th mark marks the beginning of the solar system name)
+
+                        //i know these are ungodly painful to look at but i couldnt think of a better way, and you cant use absolute values because different station name lengths and all that
                         var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
                         Thread presenceThread = new Thread(() => PresenceUpdate(charName, "En volant dans: " + full));
                         presenceThread.Start();
                         presenceThread.Join();
                         Loop(fileDir);
                     }
+                    var location1 = data.LastIndexOf("<");
+                    var location2 = data.LastIndexOf(">");
+
                     if (data.Substring(data.IndexOf("]", location2) + 42, 8) == "acceptée")
                     {
                         var half = data.Substring(location1, location2 - location1);
@@ -94,7 +98,7 @@ namespace eve_discord_rpc
                 Multiselect = false,
                 RestoreDirectory = true,
                 DefaultExt = ".txt",
-                Filter = "Text files only|*.txt",
+                Filter = ".txt|*.txt",
                 AddExtension = true,
             };
             diag.ShowDialog();
@@ -159,6 +163,37 @@ namespace eve_discord_rpc
             client.Dispose();
             Process process = Process.GetProcessesByName("eve-discord-rpc")[0];
             process.Kill();
+        }
+
+        private void Button3_Click(object sender, EventArgs e)
+        {
+            this.WindowState = FormWindowState.Minimized;
+        }
+
+        private void Form1_SizeChanged(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Minimized)
+            {
+                Hide();
+                MenuItem menuItem = new MenuItem("&Exit", new EventHandler(Button2_Click));
+                menuItem.Index = 0;
+                menuItem.Enabled = true;
+                menuItem.Visible = true;
+                menuItem.Checked = false;
+
+                ContextMenu cmenu = new ContextMenu();
+                cmenu.MenuItems.Add(menuItem);
+
+                notifyIcon1.Visible = true;
+                notifyIcon1.ContextMenu = cmenu;
+            }
+        }
+
+        private void NotifyIcon1_DoubleClick(object sender, EventArgs e)
+        {
+            Show();
+            this.WindowState = FormWindowState.Normal;
+            notifyIcon1.Visible = false;
         }
     }
 }
