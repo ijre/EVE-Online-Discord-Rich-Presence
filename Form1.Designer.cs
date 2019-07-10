@@ -37,7 +37,6 @@
             this.ingameCB = new System.Windows.Forms.CheckBox();
             this.button2 = new System.Windows.Forms.Button();
             this.textBox4 = new System.Windows.Forms.TextBox();
-            this.button3 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -132,15 +131,6 @@
             this.textBox4.Size = new System.Drawing.Size(70, 75);
             this.textBox4.TabIndex = 10;
             // 
-            // button3
-            // 
-            this.button3.Location = new System.Drawing.Point(12, 63);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(75, 75);
-            this.button3.TabIndex = 11;
-            this.button3.Text = "Undock";
-            this.button3.UseVisualStyleBackColor = true;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -148,7 +138,6 @@
             this.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.ClientSize = new System.Drawing.Size(300, 285);
             this.ControlBox = false;
-            this.Controls.Add(this.button3);
             this.Controls.Add(this.textBox4);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.ingameCB);
@@ -179,7 +168,6 @@
         private System.Windows.Forms.CheckBox ingameCB;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.TextBox textBox4;
-        private System.Windows.Forms.Button button3;
     }
 }
 

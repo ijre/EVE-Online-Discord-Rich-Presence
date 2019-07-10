@@ -39,10 +39,11 @@ namespace eve_discord_rpc
         private void PresenceUpdate(string charName, string state)
         {
             DiscordRpcClient client = new DiscordRpcClient("598364146727124993");
-            client.SetPresence(new RichPresence { Details = "Playing EVE as: " + charName, State = state });
+            client.SetPresence(new RichPresence { Details = "Jouer à EVE, sous le nom: " + charName, State = state });
             client.Initialize();
             //textBox4.Text = "Presence updated!";
             Thread.Sleep(5000);
+            client.Dispose();
             Application.ExitThread();
         }
 
@@ -61,11 +62,22 @@ namespace eve_discord_rpc
                 {
                     var location1 = data.LastIndexOf("<");
                     var location2 = data.LastIndexOf(">");
+
+                    if (data.LastIndexOf("Part de") > data.LastIndexOf("acceptée"))
+                    {
+                        var half = data.Substring(data.LastIndexOf("Part de"), data.IndexOf("[", data.LastIndexOf("Part de")) + 1 - data.LastIndexOf("Part de"));
+                        var mouthfull = half.IndexOf("\"", half.IndexOf("\"") + (half.IndexOf("\"", half.IndexOf("\"") + 1)));
+                        var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
+                        Thread presenceThread = new Thread(() => PresenceUpdate(charName, "En volant dans: " + full));
+                        presenceThread.Start();
+                        presenceThread.Join();
+                        Loop(fileDir);
+                    }
                     if (data.Substring(data.IndexOf("]", location2) + 42, 8) == "acceptée")
                     {
                         var half = data.Substring(location1, location2 - location1);
                         var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
-                        Thread presenceThread = new Thread(() => PresenceUpdate(charName, full));
+                        Thread presenceThread = new Thread(() => PresenceUpdate(charName, "Amarré(e) à la station " + full));
                         presenceThread.Start();
                         presenceThread.Join();
                         Loop(fileDir);
