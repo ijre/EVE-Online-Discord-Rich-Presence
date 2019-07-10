@@ -97,8 +97,9 @@
             // englishCB
             // 
             this.englishCB.AutoSize = true;
-            this.englishCB.Location = new System.Drawing.Point(74, 248);
+            this.englishCB.Location = new System.Drawing.Point(79, 248);
             this.englishCB.Name = "englishCB";
+            this.englishCB.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.englishCB.Size = new System.Drawing.Size(60, 17);
             this.englishCB.TabIndex = 7;
             this.englishCB.Text = "English";
@@ -108,7 +109,7 @@
             // ingameCB
             // 
             this.ingameCB.AutoSize = true;
-            this.ingameCB.Location = new System.Drawing.Point(184, 248);
+            this.ingameCB.Location = new System.Drawing.Point(178, 248);
             this.ingameCB.Name = "ingameCB";
             this.ingameCB.Size = new System.Drawing.Size(64, 17);
             this.ingameCB.TabIndex = 8;

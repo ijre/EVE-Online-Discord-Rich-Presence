@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // associées à un assembly.
 [assembly: AssemblyTitle("eve-discord-rpc")]
 [assembly: AssemblyDescription("Use Discord-RPC while playing EVE Online!")]
-[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyConfiguration("Release")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("eve-discord-rpc")]
 [assembly: AssemblyCopyright("Copyright © Paige Seivertson 2019")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // Vous pouvez spécifier toutes les valeurs ou indiquer les numéros de build et de révision par défaut
 // en utilisant '*', comme indiqué ci-dessous :
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.0.2.0")]
-[assembly: AssemblyFileVersion("0.0.2.0")]
+[assembly: AssemblyVersion("0.1.0.0")]
+[assembly: AssemblyFileVersion("0.1.0.0")]

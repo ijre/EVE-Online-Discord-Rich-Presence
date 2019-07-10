@@ -34,6 +34,7 @@ namespace eve_discord_rpc
                 }
             }
             catch { FolderCheckem(); }
+            ButtonCheck();
         }
 
         private void PresenceUpdate(string charName, string state)
@@ -44,7 +45,7 @@ namespace eve_discord_rpc
 #if _NDEBUG
             textBox4.Text = "Presence updated!";
 #endif
-            Thread.Sleep(15000);
+            Thread.Sleep(14000);
             client.ClearPresence();
             Application.ExitThread();
         }
@@ -53,7 +54,7 @@ namespace eve_discord_rpc
         {
 #if _NDEBUG
             textBox4.Text = "Parsing file...";
-#endif
+
             try
             {
                 Process tryProcess = Process.GetProcessesByName("exefile")[0];
@@ -61,19 +62,21 @@ namespace eve_discord_rpc
             catch
             {
                 MessageBox.Show("Fatal error: Could not find EVE Online process, closing.", "Fatal error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Application.Exit();
             }
+#endif
             Process process = Process.GetProcessesByName("exefile")[0];
 
             try
             { File.ReadAllText(fileDir).ToString(); }
             catch { Application.Restart(); }
-            //99% likely that a crash here is someone closing the file dialog wtihout selecting a file, just make it restart
+            //99% likely that a crash here is someone closing the file dialog without selecting a file, just make it restart
             var data = File.ReadAllText(fileDir).ToString();
             var charName = process.MainWindowTitle.Substring(6);
 
             if (checkBox1.Checked)
                 if (englishCB.Checked) { }
-                //TODO: game is fucked so i cant switch it off of french, so i need to find a gamelog in english
+                //TODO: game is fucked so i cant switch it off of french, i need to find a gamelog in english
                 else if (ingameCB.Checked)
                 {
                     if (data.LastIndexOf("Saute") > data.LastIndexOf("amarrage") && data.LastIndexOf("Saute") > data.LastIndexOf("Part de"))
@@ -102,17 +105,22 @@ namespace eve_discord_rpc
                         presenceThread.Join();
                         Application.ExitThread();
                     }
-                    else if (data.LastIndexOf("amarrage") > data.LastIndexOf("Part de") || data.LastIndexOf("acceptée") > data.LastIndexOf("Saute"))
+                    else if (data.LastIndexOf("amarrage") > data.LastIndexOf("Part de") && data.LastIndexOf("acceptée") > data.LastIndexOf("Saute"))
                     {
                         Thread.Sleep(1000);
                         if (data.Substring(data.LastIndexOf("amarrage")).IndexOf("amarrage a été acceptée. Votre vaisseau va être remorqué jusqu'à la station.") == 0)
                         {
                             var half = data.Substring(data.LastIndexOf("<", data.LastIndexOf("amarrage") - 1), data.LastIndexOf(">", data.LastIndexOf("amarrage") - 1) - data.LastIndexOf("<", data.LastIndexOf("amarrage")));
-                            var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
-                            Thread presenceThread = new Thread(() => PresenceUpdate(charName, "Amarré(e) à la station: " + full));
-                            presenceThread.Start();
-                            presenceThread.Join();
-                            Application.ExitThread();
+                            if (half == "<br")
+                                Application.ExitThread();
+                            else
+                            {
+                                var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
+                                Thread presenceThread = new Thread(() => PresenceUpdate(charName, "Amarré(e) à la station: " + full));
+                                presenceThread.Start();
+                                presenceThread.Join();
+                                Application.ExitThread();
+                            }
                         }
                         else
                         {
@@ -240,6 +248,22 @@ namespace eve_discord_rpc
             Show();
             this.WindowState = FormWindowState.Normal;
             notifyIcon1.Visible = false;
+        }
+
+        private void ButtonCheck()
+        {
+            if (checkBox1.Checked == true)
+            {
+                englishCB.Visible = true;
+                ingameCB.Visible = true;
+                textBox3.Visible = true;
+            }
+            else
+            {
+                englishCB.Visible = false;
+                ingameCB.Visible = false;
+                textBox3.Visible = false;
+            }
         }
     }
 }
