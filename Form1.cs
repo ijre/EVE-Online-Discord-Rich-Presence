@@ -12,25 +12,17 @@ namespace eve_discord_rpc
         public Form1()
         {
             InitializeComponent();
-            Thread.Sleep(15);
             try
             {
-                if (File.ReadAllText(Application.StartupPath + "/settings/" + "checkbox setting 1.txt").ToString() == "true")
-                    checkBox1.Checked = true;
-                else checkBox1.Checked = false;
-            }
-            catch { FolderCheckem(); }
-            try
-            {
-                if (File.ReadAllText(Application.StartupPath + "/settings/" + "checkbox setting 2.txt").ToString() == "ingame")
+                if (File.ReadAllText(Application.StartupPath + "/settings/" + "presenceSetting.txt").ToString() == "ingame")
                 {
                     ingameCB.Checked = true;
-                    englishCB.Checked = false;
+                    englishPresCB.Checked = false;
                 }
-                else if (File.ReadAllText(Application.StartupPath + "/settings/" + "checkbox setting 2.txt").ToString() == "english")
+                else if (File.ReadAllText(Application.StartupPath + "/settings/" + "presenceSetting.txt").ToString() == "english")
                 {
                     ingameCB.Checked = false;
-                    englishCB.Checked = true;
+                    englishPresCB.Checked = true;
                 }
             }
             catch { FolderCheckem(); }
@@ -74,13 +66,52 @@ namespace eve_discord_rpc
             var data = File.ReadAllText(fileDir).ToString();
             var charName = process.MainWindowTitle.Substring(6);
 
-            if (checkBox1.Checked)
+            if (englishPresCB.Checked)
             {
-                if (englishCB.Checked)
+                if (russianCB.Checked)
                 {
-
+                    //Осуществляется = jump
+                    //Выход из дока = undock
+                    //Запрос входа в док = dock request
+                    if (data.LastIndexOf("Осуществляется") > data.LastIndexOf("Выход из дока") && data.LastIndexOf("Осуществляется") > data.LastIndexOf("Запрос входа в док"))
+                    {
+                        Thread.Sleep(1000);
+                        var half = data.Substring(data.LastIndexOf("Осуществляется"), data.IndexOf("*", data.LastIndexOf("Осуществляется")) - data.LastIndexOf("Осуществляется"));
+                        var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                        presenceThread.Start();
+                        presenceThread.Join();
+                        Application.ExitThread();
+                    }
+                    else if (data.LastIndexOf("Выход из дока") > data.LastIndexOf("Осуществляется") && data.LastIndexOf("Выход из дока") > data.LastIndexOf("Запрос входа в док"))
+                    {
+                        Thread.Sleep(1000);
+                        var half = data.Substring(data.LastIndexOf("Выход из дока"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Выход из дока")) + 1) - data.LastIndexOf("Выход из дока"));
+                        var mouthfull = half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("\"", (half.IndexOf("\"") + 1)) + 1));
+                        var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                        presenceThread.Start();
+                        presenceThread.Join();
+                        Application.ExitThread();
+                    }
+                    else if (data.LastIndexOf("Запрос входа в док") > data.LastIndexOf("Выход из дока") && data.LastIndexOf("Запрос входа в док") > data.LastIndexOf("Осуществляется"))
+                    {
+                        Thread.Sleep(1000);
+                        if (data.Substring(data.LastIndexOf("разрешение")).IndexOf("разрешение на использование дока станции. Приготовьтесь к приему буксира.") != -1)
+                        {
+                            var half = data.Substring(data.LastIndexOf("Запрос входа в док"), data.IndexOf("\"", data.IndexOf("\"", data.LastIndexOf("Запрос входа в док")) + 1));
+                            var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - 1) - half.IndexOf("\""));
+                            Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Docked at: " + full));
+                            presenceThread.Start();
+                            presenceThread.Join();
+                            Application.ExitThread();
+                        }
+                    }
                 }
-                else if (ingameCB.Checked)
+            }
+            else if (ingameCB.Checked)
+            {
+                if (frenchCB.Checked)
                 {
                     if (data.LastIndexOf("Saute") > data.LastIndexOf("amarrage") && data.LastIndexOf("Saute") > data.LastIndexOf("Part de"))
                     {
@@ -135,43 +166,43 @@ namespace eve_discord_rpc
                         Application.ExitThread();
                     }
                 }
-            }
-            else
-            {
-                if (data.LastIndexOf(" dock ") > data.LastIndexOf("Undocking") && data.LastIndexOf(" dock ") > data.LastIndexOf("Jumping"))
+                else if (englishCB.Checked)
                 {
-                    Thread.Sleep(1000);
-                    var half = data.Substring(data.LastIndexOf(" dock "), data.LastIndexOf("station") - data.LastIndexOf(" dock "));
-                    if (half.IndexOf("accepted") != -1)
+                    if (data.LastIndexOf(" dock ") > data.LastIndexOf("Undocking") && data.LastIndexOf(" dock ") > data.LastIndexOf("Jumping"))
                     {
-                        var full = half.Substring(half.IndexOf("at") + 3, half.IndexOf("station") - 10);
-                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Docked at station: " + full));
+                        Thread.Sleep(1000);
+                        var half = data.Substring(data.LastIndexOf(" dock "), data.LastIndexOf("station") - data.LastIndexOf(" dock "));
+                        if (half.IndexOf("accepted") != -1)
+                        {
+                            var full = half.Substring(half.IndexOf("at") + 3, half.IndexOf("station") - 10);
+                            Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Docked at station: " + full));
+                            presenceThread.Start();
+                            presenceThread.Join();
+                            Application.ExitThread();
+                        }
+                    }
+
+                    else if (data.LastIndexOf("Jumping") > data.LastIndexOf(" dock ") && data.LastIndexOf("Jumping") > data.LastIndexOf("Undocking"))
+                    {
+                        Thread.Sleep(1000);
+                        var half = data.Substring(data.LastIndexOf("Jumping"), data.LastIndexOf("\n") - data.LastIndexOf("Jumping"));
+                        var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("\r") - half.LastIndexOf("to")) - 3);
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
                         presenceThread.Start();
                         presenceThread.Join();
                         Application.ExitThread();
                     }
-                }
 
-                else if (data.LastIndexOf("Jumping") > data.LastIndexOf(" dock ") && data.LastIndexOf("Jumping") > data.LastIndexOf("Undocking"))
-                {
-                    Thread.Sleep(1000);
-                    var half = data.Substring(data.LastIndexOf("Jumping"), data.LastIndexOf("\n") - data.LastIndexOf("Jumping"));
-                    var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("\r") - half.LastIndexOf("to")) - 3);
-                    Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
-                    presenceThread.Start();
-                    presenceThread.Join();
-                    Application.ExitThread();
-                }
-
-                else if (data.LastIndexOf("Undocking") > data.LastIndexOf(" dock ") && data.LastIndexOf("Undocking") > data.LastIndexOf("Jumping"))
-                {
-                    Thread.Sleep(1000);
-                    var half = data.Substring(data.LastIndexOf("Undocking"), data.LastIndexOf("\r") - data.LastIndexOf("Undocking"));
-                    var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("solar") - 1) - half.LastIndexOf("to") - 3);
-                    Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
-                    presenceThread.Start();
-                    presenceThread.Join();
-                    Application.ExitThread();
+                    else if (data.LastIndexOf("Undocking") > data.LastIndexOf(" dock ") && data.LastIndexOf("Undocking") > data.LastIndexOf("Jumping"))
+                    {
+                        Thread.Sleep(1000);
+                        var half = data.Substring(data.LastIndexOf("Undocking"), data.LastIndexOf("\r") - data.LastIndexOf("Undocking"));
+                        var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("solar") - 1) - half.LastIndexOf("to") - 3);
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                        presenceThread.Start();
+                        presenceThread.Join();
+                        Application.ExitThread();
+                    }
                 }
             }
         }
@@ -198,7 +229,7 @@ namespace eve_discord_rpc
             Thread loopThread = new Thread(() => Loop(fileName));
             loopThread.Start();
             loopThread.Join();
-            Thread.Sleep(5000);
+            Thread.Sleep(1000);
             LoopBegin(fileName);
         }
 
@@ -208,34 +239,15 @@ namespace eve_discord_rpc
                 Directory.CreateDirectory(Application.StartupPath + "/settings/");
         }
 
-        private void CheckBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            FolderCheckem();
-            if (checkBox1.Checked == true)
-            {
-                File.WriteAllText(Application.StartupPath + "/settings/" + "checkbox setting 1.txt", "true");
-                englishCB.Visible = true;
-                ingameCB.Visible = true;
-                textBox3.Visible = true;
-            }
-            else
-            {
-                File.WriteAllText(Application.StartupPath + "/settings/" + "checkbox setting 1.txt", "false");
-                englishCB.Visible = false;
-                ingameCB.Visible = false;
-                textBox3.Visible = false;
-            }
-        }
-
         private void EnglishCB_CheckedChanged(object sender, EventArgs e)
         {
             FolderCheckem();
-            if (englishCB.Checked == true)
+            if (englishPresCB.Checked == true)
             {
                 if (ingameCB.Checked == true)
                     ingameCB.Checked = false;
 
-                File.WriteAllText(Application.StartupPath + "/settings/" + "checkbox setting 2.txt", "english");
+                File.WriteAllText(Application.StartupPath + "/settings/" + "presenceSetting.txt", "english");
             }
         }
 
@@ -244,10 +256,10 @@ namespace eve_discord_rpc
             FolderCheckem();
             if (ingameCB.Checked == true)
             {
-                if (englishCB.Checked == true)
-                    englishCB.Checked = false;
+                if (englishPresCB.Checked == true)
+                    englishPresCB.Checked = false;
 
-                File.WriteAllText(Application.StartupPath + "/settings/" + "checkbox setting 2.txt", "ingame");
+                File.WriteAllText(Application.StartupPath + "/settings/" + "presenceSetting.txt", "ingame");
             }
         }
 
@@ -295,18 +307,153 @@ namespace eve_discord_rpc
 
         private void ButtonCheck()
         {
-            if (checkBox1.Checked == true)
+            try
             {
-                englishCB.Visible = true;
-                ingameCB.Visible = true;
-                textBox3.Visible = true;
+                switch (File.ReadAllText(Application.StartupPath + "/settings/" + "language.txt"))
+                {
+                    case "russian":
+                        russianCB.Checked = true;
+                        ingameCB.Visible = false;
+                        textBox3.Visible = true;
+                        englishPresCB.Visible = true;
+                        break;
+                    case "french":
+                        frenchCB.Checked = true;
+                        ingameCB.Visible = true;
+                        textBox3.Visible = true;
+                        englishPresCB.Visible = true;
+                        break;
+                    case "japanese":
+                        japaneseCB.Checked = true;
+                        ingameCB.Visible = false;
+                        textBox3.Visible = true;
+                        englishPresCB.Visible = true;
+                        break;
+                    case "english":
+                        englishCB.Checked = true;
+                        ingameCB.Visible = false;
+                        textBox3.Visible = false;
+                        englishPresCB.Visible = false;
+                        break;
+                    case "german":
+                        germanCB.Checked = true;
+                        ingameCB.Visible = false;
+                        textBox3.Visible = true;
+                        englishPresCB.Visible = true;
+                        break;
+                }
             }
-            else
-            {
-                englishCB.Visible = false;
-                ingameCB.Visible = false;
-                textBox3.Visible = false;
-            }
+            catch
+            { FolderCheckem(); }
+        }
+
+        private void ButtonSave()
+        {
+            var path = Application.StartupPath + "/settings/" + "language.txt";
+            if (russianCB.Checked == true)
+                File.WriteAllText(path, "russian");
+
+            else if (frenchCB.Checked == true)
+                File.WriteAllText(path, "french");
+
+            else if (germanCB.Checked == true)
+                File.WriteAllText(path, "german");
+
+            else if (japaneseCB.Checked == true)
+                File.WriteAllText(path, "japanese");
+
+            else if (englishCB.Checked == true)
+                File.WriteAllText(path, "english");
+        }
+
+        private void RussianCB_CheckedChanged(object sender, EventArgs e)
+        {
+            if (russianCB.Checked == true)
+                if (frenchCB.Checked == true || germanCB.Checked == true || japaneseCB.Checked == true || englishCB.Checked == true)
+                {
+                    frenchCB.Checked = false;
+                    germanCB.Checked = false;
+                    japaneseCB.Checked = false;
+                    englishCB.Checked = false;
+
+                    russianCB.Checked = true;
+                    ButtonSave();
+                    ingameCB.Visible = false;
+                    textBox3.Visible = true;
+                    englishPresCB.Visible = true;
+                }
+        }
+
+        private void GermanCB_CheckedChanged(object sender, EventArgs e)
+        {
+            if (germanCB.Checked == true)
+                if (frenchCB.Checked == true || russianCB.Checked == true || japaneseCB.Checked == true || englishCB.Checked == true)
+                {
+                    frenchCB.Checked = false;
+                    russianCB.Checked = false;
+                    japaneseCB.Checked = false;
+                    englishCB.Checked = false;
+
+                    germanCB.Checked = true;
+                    ButtonSave();
+                    ingameCB.Visible = false;
+                    textBox3.Visible = true;
+                    englishPresCB.Visible = true;
+                }
+        }
+
+        private void FrenchCB_CheckedChanged(object sender, EventArgs e)
+        {
+            if (frenchCB.Checked == true)
+                if (germanCB.Checked == true || russianCB.Checked == true || japaneseCB.Checked == true || englishCB.Checked == true)
+                {
+                    germanCB.Checked = false;
+                    russianCB.Checked = false;
+                    japaneseCB.Checked = false;
+                    englishCB.Checked = false;
+
+                    frenchCB.Checked = true;
+                    ButtonSave();
+                    ingameCB.Visible = true;
+                    textBox3.Visible = true;
+                    englishPresCB.Visible = true;
+                }
+        }
+
+        private void JapaneseCB_CheckedChanged(object sender, EventArgs e)
+        {
+            if (japaneseCB.Checked == true)
+                if (frenchCB.Checked == true || russianCB.Checked == true || germanCB.Checked == true || englishCB.Checked == true)
+                {
+                    frenchCB.Checked = false;
+                    russianCB.Checked = false;
+                    germanCB.Checked = false;
+                    englishCB.Checked = false;
+
+                    japaneseCB.Checked = true;
+                    ButtonSave();
+                    ingameCB.Visible = false;
+                    textBox3.Visible = true;
+                    englishPresCB.Visible = true;
+                }
+        }
+
+        private void EnglishCB_CheckedChanged_1(object sender, EventArgs e)
+        {
+            if (englishCB.Checked == true)
+                if (frenchCB.Checked == true || russianCB.Checked == true || germanCB.Checked == true || japaneseCB.Checked == true)
+                {
+                    frenchCB.Checked = false;
+                    russianCB.Checked = false;
+                    germanCB.Checked = false;
+                    japaneseCB.Checked = false;
+
+                    englishCB.Checked = true;
+                    ButtonSave();
+                    ingameCB.Visible = false;
+                    textBox3.Visible = false;
+                    englishPresCB.Visible = false;
+                }
         }
     }
 }
