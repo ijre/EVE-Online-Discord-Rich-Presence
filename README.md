@@ -11,14 +11,14 @@
      * **Japanese**
 
 * **In progress:**
-   * **Work out every current bug (0.1.0.0)**
    * **Add non-English -> English support\*\***
    * **Languages:**  
-     * **English**
+    * **None currently in progress**
 
 * **Done:**
     * **Languages:**
       * **French**
+      * **English**
 
 **\* Full is defined as both your actual Rich Presence and the values grabbed being of that language.**  
 

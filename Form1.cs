@@ -37,15 +37,15 @@ namespace eve_discord_rpc
             ButtonCheck();
         }
 
-        private void PresenceUpdate(string charName, string state)
+        private void PresenceUpdate(string details, string state)
         {
             DiscordRpcClient client = new DiscordRpcClient("598364146727124993");
-            client.SetPresence(new RichPresence { Details = "Jouer à EVE, sous le nom: " + charName, State = state });
+            client.SetPresence(new RichPresence { Details = details, State = state });
             client.Initialize();
 #if _NDEBUG
             textBox4.Text = "Presence updated!";
 #endif
-            Thread.Sleep(14000);
+            Thread.Sleep(9000);
             client.ClearPresence();
             Application.ExitThread();
         }
@@ -75,8 +75,11 @@ namespace eve_discord_rpc
             var charName = process.MainWindowTitle.Substring(6);
 
             if (checkBox1.Checked)
-                if (englishCB.Checked) { }
-                //TODO: game is fucked so i cant switch it off of french, i need to find a gamelog in english
+            {
+                if (englishCB.Checked)
+                {
+
+                }
                 else if (ingameCB.Checked)
                 {
                     if (data.LastIndexOf("Saute") > data.LastIndexOf("amarrage") && data.LastIndexOf("Saute") > data.LastIndexOf("Part de"))
@@ -87,7 +90,7 @@ namespace eve_discord_rpc
                         var mouthfull = half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("\"", (half.IndexOf("\"") + 1)) + 1));
                         //this skips past 2 quotations to find a 3rd quotation mark (the 3rd mark marks the beginning of the solar system name)
                         var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
-                        Thread presenceThread = new Thread(() => PresenceUpdate(charName, "En volant dans: " + full));
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Jouer à EVE, sous le nom: " + charName, "En volant dans: " + full));
                         presenceThread.Start();
                         presenceThread.Join();
                         Application.ExitThread();
@@ -100,7 +103,7 @@ namespace eve_discord_rpc
                         //and this skips past 3 quotations to find a 4th quotation mark (the 4th mark marks the beginning of the solar system name)
                         //i know all of this is ungodly painful to look at but i couldnt think of a better way, and you cant use absolute values because different system name lengths and all that
                         var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
-                        Thread presenceThread = new Thread(() => PresenceUpdate(charName, "En volant dans: " + full));
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Jouer à EVE, sous le nom: " + charName, "En volant dans: " + full));
                         presenceThread.Start();
                         presenceThread.Join();
                         Application.ExitThread();
@@ -116,7 +119,7 @@ namespace eve_discord_rpc
                             else
                             {
                                 var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
-                                Thread presenceThread = new Thread(() => PresenceUpdate(charName, "Amarré(e) à la station: " + full));
+                                Thread presenceThread = new Thread(() => PresenceUpdate("Jouer à EVE, sous le nom: " + charName, "Amarré(e) à la station: " + full));
                                 presenceThread.Start();
                                 presenceThread.Join();
                                 Application.ExitThread();
@@ -132,6 +135,45 @@ namespace eve_discord_rpc
                         Application.ExitThread();
                     }
                 }
+            }
+            else
+            {
+                if (data.LastIndexOf(" dock ") > data.LastIndexOf("Undocking") && data.LastIndexOf(" dock ") > data.LastIndexOf("Jumping"))
+                {
+                    Thread.Sleep(1000);
+                    var half = data.Substring(data.LastIndexOf(" dock "), data.LastIndexOf("station") - data.LastIndexOf(" dock "));
+                    if (half.IndexOf("accepted") != -1)
+                    {
+                        var full = half.Substring(half.IndexOf("at") + 3, half.IndexOf("station") - 10);
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Docked at station: " + full));
+                        presenceThread.Start();
+                        presenceThread.Join();
+                        Application.ExitThread();
+                    }
+                }
+
+                else if (data.LastIndexOf("Jumping") > data.LastIndexOf(" dock ") && data.LastIndexOf("Jumping") > data.LastIndexOf("Undocking"))
+                {
+                    Thread.Sleep(1000);
+                    var half = data.Substring(data.LastIndexOf("Jumping"), data.LastIndexOf("\n") - data.LastIndexOf("Jumping"));
+                    var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("\r") - half.LastIndexOf("to")) - 3);
+                    Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                    presenceThread.Start();
+                    presenceThread.Join();
+                    Application.ExitThread();
+                }
+
+                else if (data.LastIndexOf("Undocking") > data.LastIndexOf(" dock ") && data.LastIndexOf("Undocking") > data.LastIndexOf("Jumping"))
+                {
+                    Thread.Sleep(1000);
+                    var half = data.Substring(data.LastIndexOf("Undocking"), data.LastIndexOf("\r") - data.LastIndexOf("Undocking"));
+                    var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("solar") - 1) - half.LastIndexOf("to") - 3);
+                    Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                    presenceThread.Start();
+                    presenceThread.Join();
+                    Application.ExitThread();
+                }
+            }
         }
 
         private void Button1_Click(object sender, EventArgs e)
@@ -156,6 +198,7 @@ namespace eve_discord_rpc
             Thread loopThread = new Thread(() => Loop(fileName));
             loopThread.Start();
             loopThread.Join();
+            Thread.Sleep(5000);
             LoopBegin(fileName);
         }
 
