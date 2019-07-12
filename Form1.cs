@@ -12,20 +12,6 @@ namespace eve_discord_rpc
         public Form1()
         {
             InitializeComponent();
-            try
-            {
-                if (File.ReadAllText(Application.StartupPath + "/settings/" + "presenceSetting.txt").ToString() == "ingame")
-                {
-                    ingameCB.Checked = true;
-                    englishPresCB.Checked = false;
-                }
-                else if (File.ReadAllText(Application.StartupPath + "/settings/" + "presenceSetting.txt").ToString() == "english")
-                {
-                    ingameCB.Checked = false;
-                    englishPresCB.Checked = true;
-                }
-            }
-            catch { FolderCheckem(); }
             ButtonCheck();
         }
 
@@ -66,99 +52,120 @@ namespace eve_discord_rpc
             var data = File.ReadAllText(fileDir).ToString();
             var charName = process.MainWindowTitle.Substring(6);
 
-            if (englishPresCB.Checked)
+            if (russianCB.Checked)
             {
-                if (russianCB.Checked)
+                //Осуществляется = jump
+                //Выход из дока = undock
+                //Запрос входа в док = dock request
+                if (data.LastIndexOf("Осуществляется") > data.LastIndexOf("Выход из дока") && data.LastIndexOf("Осуществляется") > data.LastIndexOf("Запрос входа в док"))
                 {
-                    //Осуществляется = jump
-                    //Выход из дока = undock
-                    //Запрос входа в док = dock request
-                    if (data.LastIndexOf("Осуществляется") > data.LastIndexOf("Выход из дока") && data.LastIndexOf("Осуществляется") > data.LastIndexOf("Запрос входа в док"))
+                    Thread.Sleep(1000);
+                    var half = data.Substring(data.LastIndexOf("Осуществляется"), data.IndexOf("*", data.LastIndexOf("Осуществляется")) - data.LastIndexOf("Осуществляется"));
+                    var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
+                    Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                    presenceThread.Start();
+                    presenceThread.Join();
+                    Application.ExitThread();
+                }
+                else if (data.LastIndexOf("Выход из дока") > data.LastIndexOf("Осуществляется") && data.LastIndexOf("Выход из дока") > data.LastIndexOf("Запрос входа в док"))
+                {
+                    Thread.Sleep(1000);
+                    var half = data.Substring(data.LastIndexOf("Выход из дока"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Выход из дока")) + 1) - data.LastIndexOf("Выход из дока"));
+                    var mouthfull = half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("\"", (half.IndexOf("\"") + 1)) + 1));
+                    var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
+                    Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                    presenceThread.Start();
+                    presenceThread.Join();
+                    Application.ExitThread();
+                }
+                else if (data.LastIndexOf("Запрос входа в док") > data.LastIndexOf("Выход из дока") && data.LastIndexOf("Запрос входа в док") > data.LastIndexOf("Осуществляется"))
+                {
+                    Thread.Sleep(1000);
+                    if (data.Substring(data.LastIndexOf("разрешение")).IndexOf("разрешение на использование дока станции. Приготовьтесь к приему буксира.") != -1)
                     {
-                        Thread.Sleep(1000);
-                        var half = data.Substring(data.LastIndexOf("Осуществляется"), data.IndexOf("*", data.LastIndexOf("Осуществляется")) - data.LastIndexOf("Осуществляется"));
-                        var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
-                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                        var half = data.Substring(data.LastIndexOf("Запрос входа в док"), data.IndexOf("\"", data.IndexOf("\"", data.LastIndexOf("Запрос входа в док")) + 1));
+                        var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - 1) - half.IndexOf("\""));
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Docked at: " + full));
                         presenceThread.Start();
                         presenceThread.Join();
                         Application.ExitThread();
-                    }
-                    else if (data.LastIndexOf("Выход из дока") > data.LastIndexOf("Осуществляется") && data.LastIndexOf("Выход из дока") > data.LastIndexOf("Запрос входа в док"))
-                    {
-                        Thread.Sleep(1000);
-                        var half = data.Substring(data.LastIndexOf("Выход из дока"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Выход из дока")) + 1) - data.LastIndexOf("Выход из дока"));
-                        var mouthfull = half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("\"", (half.IndexOf("\"") + 1)) + 1));
-                        var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
-                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
-                        presenceThread.Start();
-                        presenceThread.Join();
-                        Application.ExitThread();
-                    }
-                    else if (data.LastIndexOf("Запрос входа в док") > data.LastIndexOf("Выход из дока") && data.LastIndexOf("Запрос входа в док") > data.LastIndexOf("Осуществляется"))
-                    {
-                        Thread.Sleep(1000);
-                        if (data.Substring(data.LastIndexOf("разрешение")).IndexOf("разрешение на использование дока станции. Приготовьтесь к приему буксира.") != -1)
-                        {
-                            var half = data.Substring(data.LastIndexOf("Запрос входа в док"), data.IndexOf("\"", data.IndexOf("\"", data.LastIndexOf("Запрос входа в док")) + 1));
-                            var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - 1) - half.IndexOf("\""));
-                            Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Docked at: " + full));
-                            presenceThread.Start();
-                            presenceThread.Join();
-                            Application.ExitThread();
-                        }
                     }
                 }
             }
-            else if (ingameCB.Checked)
+
+            if (frenchCB.Checked)
             {
-                if (frenchCB.Checked)
+                if (data.LastIndexOf("Saute") > data.LastIndexOf("amarrage") && data.LastIndexOf("Saute") > data.LastIndexOf("Part de"))
                 {
-                    if (data.LastIndexOf("Saute") > data.LastIndexOf("amarrage") && data.LastIndexOf("Saute") > data.LastIndexOf("Part de"))
+                    Thread.Sleep(1000);
+                    var half = data.Substring(data.LastIndexOf("Saute"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Saute")) + 1) - data.LastIndexOf("Saute"));
+                    //this creates a substring from "Saute" (jump) and ends it at the second instance of * afterwards
+                    var mouthfull = half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("\"", (half.IndexOf("\"") + 1)) + 1));
+                    //this skips past 2 quotations to find a 3rd quotation mark (the 3rd mark marks the beginning of the solar system name)
+                    var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
+                    if (englishPresCB.Checked)
                     {
-                        Thread.Sleep(1000);
-                        var half = data.Substring(data.LastIndexOf("Saute"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Saute")) + 1) - data.LastIndexOf("Saute"));
-                        //this creates a substring from "Saute" (jump) and ends it at the second instance of * afterwards
-                        var mouthfull = half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("\"", (half.IndexOf("\"") + 1)) + 1));
-                        //this skips past 2 quotations to find a 3rd quotation mark (the 3rd mark marks the beginning of the solar system name)
-                        var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                        presenceThread.Start();
+                        presenceThread.Join();
+                        Application.ExitThread();
+                    }
+                    else if (ingameCB.Checked)
+                    {
                         Thread presenceThread = new Thread(() => PresenceUpdate("Jouer à EVE, sous le nom: " + charName, "En volant dans: " + full));
                         presenceThread.Start();
                         presenceThread.Join();
                         Application.ExitThread();
                     }
-                    else if (data.LastIndexOf("Part de") > data.LastIndexOf("amarrage") && data.LastIndexOf("Part de") > data.LastIndexOf("Saute"))
+                }
+                else if (data.LastIndexOf("Part de") > data.LastIndexOf("amarrage") && data.LastIndexOf("Part de") > data.LastIndexOf("Saute"))
+                {
+                    Thread.Sleep(1000);
+                    var half = data.Substring(data.LastIndexOf("Part de"), data.IndexOf(".", data.LastIndexOf("Part de")) + 1 - data.LastIndexOf("Part de"));
+                    var mouthfull = half.IndexOf("\"", half.IndexOf("\"") + (half.IndexOf("\"", half.IndexOf("\"") + 1)));
+                    //and this skips past 3 quotations to find a 4th quotation mark (the 4th mark marks the beginning of the solar system name)
+                    //i know all of this is ungodly painful to look at but i couldnt think of a better way, and you cant use absolute values because different system name lengths and all that
+                    var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
+                    if (englishPresCB.Checked)
                     {
-                        Thread.Sleep(1000);
-                        var half = data.Substring(data.LastIndexOf("Part de"), data.IndexOf(".", data.LastIndexOf("Part de")) + 1 - data.LastIndexOf("Part de"));
-                        var mouthfull = half.IndexOf("\"", half.IndexOf("\"") + (half.IndexOf("\"", half.IndexOf("\"") + 1)));
-                        //and this skips past 3 quotations to find a 4th quotation mark (the 4th mark marks the beginning of the solar system name)
-                        //i know all of this is ungodly painful to look at but i couldnt think of a better way, and you cant use absolute values because different system name lengths and all that
-                        var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                        presenceThread.Start();
+                        presenceThread.Join();
+                        Application.ExitThread();
+                    }
+                    else if (ingameCB.Checked)
+                    {
                         Thread presenceThread = new Thread(() => PresenceUpdate("Jouer à EVE, sous le nom: " + charName, "En volant dans: " + full));
                         presenceThread.Start();
                         presenceThread.Join();
                         Application.ExitThread();
                     }
-                    else if (data.LastIndexOf("amarrage") > data.LastIndexOf("Part de") && data.LastIndexOf("acceptée") > data.LastIndexOf("Saute"))
+                }
+                else if (data.LastIndexOf("amarrage") > data.LastIndexOf("Part de") && data.LastIndexOf("acceptée") > data.LastIndexOf("Saute"))
+                {
+                    Thread.Sleep(1000);
+                    if (data.Substring(data.LastIndexOf("amarrage")).IndexOf("amarrage a été acceptée. Votre vaisseau va être remorqué jusqu'à la station.") == 0)
                     {
-                        Thread.Sleep(1000);
-                        if (data.Substring(data.LastIndexOf("amarrage")).IndexOf("amarrage a été acceptée. Votre vaisseau va être remorqué jusqu'à la station.") == 0)
+                        var half = data.Substring(data.LastIndexOf("<", data.LastIndexOf("amarrage") - 1), data.LastIndexOf(">", data.LastIndexOf("amarrage") - 1) - data.LastIndexOf("<", data.LastIndexOf("amarrage")));
+                        if (half == "<br")
+                            Application.ExitThread();
+                        else
                         {
-                            var half = data.Substring(data.LastIndexOf("<", data.LastIndexOf("amarrage") - 1), data.LastIndexOf(">", data.LastIndexOf("amarrage") - 1) - data.LastIndexOf("<", data.LastIndexOf("amarrage")));
-                            if (half == "<br")
-                                Application.ExitThread();
-                            else
+                            var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
+                            if (englishPresCB.Checked)
                             {
-                                var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
-                                Thread presenceThread = new Thread(() => PresenceUpdate("Jouer à EVE, sous le nom: " + charName, "Amarré(e) à la station: " + full));
+                                Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
                                 presenceThread.Start();
                                 presenceThread.Join();
                                 Application.ExitThread();
                             }
-                        }
-                        else
-                        {
-                            Application.ExitThread();
+                            else if (ingameCB.Checked)
+                            {
+                                Thread presenceThread = new Thread(() => PresenceUpdate("Jouer à EVE, sous le nom: " + charName, "En volant dans: " + full));
+                                presenceThread.Start();
+                                presenceThread.Join();
+                                Application.ExitThread();
+                            }
                         }
                     }
                     else
@@ -166,43 +173,47 @@ namespace eve_discord_rpc
                         Application.ExitThread();
                     }
                 }
-                else if (englishCB.Checked)
+                else
                 {
-                    if (data.LastIndexOf(" dock ") > data.LastIndexOf("Undocking") && data.LastIndexOf(" dock ") > data.LastIndexOf("Jumping"))
+                    Application.ExitThread();
+                }
+            }
+            else if (englishCB.Checked)
+            {
+                if (data.LastIndexOf(" dock ") > data.LastIndexOf("Undocking") && data.LastIndexOf(" dock ") > data.LastIndexOf("Jumping"))
+                {
+                    Thread.Sleep(1000);
+                    var half = data.Substring(data.LastIndexOf(" dock "), data.LastIndexOf("station") - data.LastIndexOf(" dock "));
+                    if (half.IndexOf("accepted") != -1)
                     {
-                        Thread.Sleep(1000);
-                        var half = data.Substring(data.LastIndexOf(" dock "), data.LastIndexOf("station") - data.LastIndexOf(" dock "));
-                        if (half.IndexOf("accepted") != -1)
-                        {
-                            var full = half.Substring(half.IndexOf("at") + 3, half.IndexOf("station") - 10);
-                            Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Docked at station: " + full));
-                            presenceThread.Start();
-                            presenceThread.Join();
-                            Application.ExitThread();
-                        }
-                    }
-
-                    else if (data.LastIndexOf("Jumping") > data.LastIndexOf(" dock ") && data.LastIndexOf("Jumping") > data.LastIndexOf("Undocking"))
-                    {
-                        Thread.Sleep(1000);
-                        var half = data.Substring(data.LastIndexOf("Jumping"), data.LastIndexOf("\n") - data.LastIndexOf("Jumping"));
-                        var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("\r") - half.LastIndexOf("to")) - 3);
-                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                        var full = half.Substring(half.IndexOf("at") + 3, half.IndexOf("station") - 10);
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Docked at station: " + full));
                         presenceThread.Start();
                         presenceThread.Join();
                         Application.ExitThread();
                     }
+                }
 
-                    else if (data.LastIndexOf("Undocking") > data.LastIndexOf(" dock ") && data.LastIndexOf("Undocking") > data.LastIndexOf("Jumping"))
-                    {
-                        Thread.Sleep(1000);
-                        var half = data.Substring(data.LastIndexOf("Undocking"), data.LastIndexOf("\r") - data.LastIndexOf("Undocking"));
-                        var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("solar") - 1) - half.LastIndexOf("to") - 3);
-                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
-                        presenceThread.Start();
-                        presenceThread.Join();
-                        Application.ExitThread();
-                    }
+                else if (data.LastIndexOf("Jumping") > data.LastIndexOf(" dock ") && data.LastIndexOf("Jumping") > data.LastIndexOf("Undocking"))
+                {
+                    Thread.Sleep(1000);
+                    var half = data.Substring(data.LastIndexOf("Jumping"), data.LastIndexOf("\n") - data.LastIndexOf("Jumping"));
+                    var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("\r") - half.LastIndexOf("to")) - 3);
+                    Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                    presenceThread.Start();
+                    presenceThread.Join();
+                    Application.ExitThread();
+                }
+
+                else if (data.LastIndexOf("Undocking") > data.LastIndexOf(" dock ") && data.LastIndexOf("Undocking") > data.LastIndexOf("Jumping"))
+                {
+                    Thread.Sleep(1000);
+                    var half = data.Substring(data.LastIndexOf("Undocking"), data.LastIndexOf("\r") - data.LastIndexOf("Undocking"));
+                    var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("solar") - 1) - half.LastIndexOf("to") - 3);
+                    Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                    presenceThread.Start();
+                    presenceThread.Join();
+                    Application.ExitThread();
                 }
             }
         }
@@ -267,6 +278,8 @@ namespace eve_discord_rpc
         {
             DiscordRpcClient client = new DiscordRpcClient("598364146727124993");
             client.SetPresence(new RichPresence { Details = "", State = "" });
+            //Fun Fact: setting the presence to this technically throws an error (state and details must be at least two letters long)
+            //but it's actually really effective for clearing presences
             Thread.Sleep(50);
             client.Dispose();
             Process process = Process.GetProcessesByName("eve-discord-rpc")[0];
@@ -309,6 +322,15 @@ namespace eve_discord_rpc
         {
             try
             {
+                switch (File.ReadAllText(Application.StartupPath + "/settings/" + "presenceSettings.txt"))
+                {
+                    case "english":
+                        englishPresCB.Checked = true;
+                        break;
+                    case "ingame":
+                        ingameCB.Checked = true;
+                        break;
+                }
                 switch (File.ReadAllText(Application.StartupPath + "/settings/" + "language.txt"))
                 {
                     case "russian":
@@ -369,6 +391,7 @@ namespace eve_discord_rpc
         private void RussianCB_CheckedChanged(object sender, EventArgs e)
         {
             if (russianCB.Checked == true)
+            {
                 if (frenchCB.Checked == true || germanCB.Checked == true || japaneseCB.Checked == true || englishCB.Checked == true)
                 {
                     frenchCB.Checked = false;
@@ -382,11 +405,21 @@ namespace eve_discord_rpc
                     textBox3.Visible = true;
                     englishPresCB.Visible = true;
                 }
+                else
+                {
+                    russianCB.Checked = true;
+                    ButtonSave();
+                    ingameCB.Visible = false;
+                    textBox3.Visible = true;
+                    englishPresCB.Visible = true;
+                }
+            }
         }
 
         private void GermanCB_CheckedChanged(object sender, EventArgs e)
         {
             if (germanCB.Checked == true)
+            {
                 if (frenchCB.Checked == true || russianCB.Checked == true || japaneseCB.Checked == true || englishCB.Checked == true)
                 {
                     frenchCB.Checked = false;
@@ -400,11 +433,21 @@ namespace eve_discord_rpc
                     textBox3.Visible = true;
                     englishPresCB.Visible = true;
                 }
+                else
+                {
+                    germanCB.Checked = true;
+                    ButtonSave();
+                    ingameCB.Visible = false;
+                    textBox3.Visible = true;
+                    englishPresCB.Visible = true;
+                }
+            }
         }
 
         private void FrenchCB_CheckedChanged(object sender, EventArgs e)
         {
             if (frenchCB.Checked == true)
+            {
                 if (germanCB.Checked == true || russianCB.Checked == true || japaneseCB.Checked == true || englishCB.Checked == true)
                 {
                     germanCB.Checked = false;
@@ -418,11 +461,21 @@ namespace eve_discord_rpc
                     textBox3.Visible = true;
                     englishPresCB.Visible = true;
                 }
+                else
+                {
+                    frenchCB.Checked = true;
+                    ButtonSave();
+                    ingameCB.Visible = true;
+                    textBox3.Visible = true;
+                    englishPresCB.Visible = true;
+                }
+            }
         }
 
         private void JapaneseCB_CheckedChanged(object sender, EventArgs e)
         {
             if (japaneseCB.Checked == true)
+            {
                 if (frenchCB.Checked == true || russianCB.Checked == true || germanCB.Checked == true || englishCB.Checked == true)
                 {
                     frenchCB.Checked = false;
@@ -436,11 +489,21 @@ namespace eve_discord_rpc
                     textBox3.Visible = true;
                     englishPresCB.Visible = true;
                 }
+                else
+                {
+                    japaneseCB.Checked = true;
+                    ButtonSave();
+                    ingameCB.Visible = false;
+                    textBox3.Visible = true;
+                    englishPresCB.Visible = true;
+                }
+            }
         }
 
         private void EnglishCB_CheckedChanged_1(object sender, EventArgs e)
         {
             if (englishCB.Checked == true)
+            {
                 if (frenchCB.Checked == true || russianCB.Checked == true || germanCB.Checked == true || japaneseCB.Checked == true)
                 {
                     frenchCB.Checked = false;
@@ -454,6 +517,15 @@ namespace eve_discord_rpc
                     textBox3.Visible = false;
                     englishPresCB.Visible = false;
                 }
+                else
+                {
+                    englishCB.Checked = true;
+                    ButtonSave();
+                    ingameCB.Visible = false;
+                    textBox3.Visible = false;
+                    englishPresCB.Visible = false;
+                }
+            }
         }
     }
 }

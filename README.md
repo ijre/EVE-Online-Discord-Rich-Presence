@@ -10,7 +10,7 @@
 
 * **In progress:**
    * **Languages:**  
-    * **German**
+     * **German**
 
 * **Done:**
   * **Add non-English -> English support**
@@ -19,7 +19,7 @@
     * **English**
     * **Russian (partially)**
 
-**\* Full is defined as both your actual Rich Presence and the ingame names grabbed being of the target language. Right now only the ingame names are in the target language.**  
+**\* Full is defined as both your actual Rich Presence and the ingame names grabbed being of the target language. Right now only the ingame names are in the target language except for English and French, who have both.**  
 # README:
 
 ## As stated above, this is a WIP, expect possible bugs or crashes (not game crashes, dont worry)
