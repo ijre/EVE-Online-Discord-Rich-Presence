@@ -263,6 +263,51 @@ namespace eve_discord_rpc
                     Application.ExitThread();
                 }
             }
+            else if (japaneseCB.Checked)
+            {
+                // ステーションに入港許可を申請 = dock request
+                // へ出港 = undock(ing)
+                // へジャンプ中 = jump
+                if (data.LastIndexOf("ステーションに入港許可を申請") > data.LastIndexOf("へ出港") && data.LastIndexOf("ステーションに入港許可を申請") > data.LastIndexOf("へジャンプ中"))
+                {
+                    Thread.Sleep(1000);
+                    if (data.LastIndexOf("入港許可申請が許可されました。ステーション内に牽引されます") > data.LastIndexOf("ステーションに入港許可を申請"))
+                    {
+                        var full = data.Substring(data.LastIndexOf("\"", data.LastIndexOf("\"", data.LastIndexOf("ステーションに入港許可を申請")) - 1) + 1, data.LastIndexOf("\"", data.LastIndexOf("ステーションに入港許可を申請")) - data.LastIndexOf("\"", data.LastIndexOf("\"", data.LastIndexOf("ステーションに入港許可を申請")) - 1) - 1);
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Docked at station: " + full));
+                        presenceThread.Start();
+                        presenceThread.Join();
+                        Application.ExitThread();
+                    }
+                    else
+                        Application.ExitThread();
+                }
+                else if (data.LastIndexOf("へ出港") > data.LastIndexOf("ステーションに入港許可を申請") && data.LastIndexOf("へ出港") > data.LastIndexOf("へジャンプ中"))
+                {
+                    Thread.Sleep(1000);
+                    var full = data.Substring(data.IndexOf("\"", data.LastIndexOf(" から ")) + 1, data.IndexOf("\"", data.IndexOf("\"", data.LastIndexOf(" から ")) + 1) - data.IndexOf("\"", data.LastIndexOf(" から ")) - 1);
+                    Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                    presenceThread.Start();
+                    presenceThread.Join();
+                    Application.ExitThread();
+                }
+                else if (data.LastIndexOf("へジャンプ中") > data.LastIndexOf("へ出港") && data.LastIndexOf("へジャンプ中") > data.LastIndexOf("ステーションに入港許可を申請"))
+                {
+                    Thread.Sleep(1000);
+                    var full = data.Substring(data.LastIndexOf("\"", data.LastIndexOf("\"", data.LastIndexOf("へジャンプ中")) - 1) + 1, data.LastIndexOf("\"", data.LastIndexOf("へジャンプ中")) - data.LastIndexOf("\"", data.LastIndexOf("\"", data.LastIndexOf("へジャンプ中")) - 1) - 1);
+                    Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                    presenceThread.Start();
+                    presenceThread.Join();
+                    Application.ExitThread();
+                }
+                else
+                    Application.ExitThread();
+            }
+            else
+            {
+                MessageBox.Show("I can't even be upset.\nYou purposefully unticked your game language option and then selected a file, and of course this breaks the entire program.\n\nOr you found a bug, in which case I'm sorry you're seeing this message.", "but why doe", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                Button2_Click(MouseButtons.Left, System.EventArgs.Empty);
+            }
         }
 
         private void Button1_Click(object sender, EventArgs e)
@@ -427,7 +472,7 @@ namespace eve_discord_rpc
                     }
                 }
                 catch { FolderCheckem(); }
-                /* 
+                /*
                    the above is possible to happen if someone were to select English and never switch (why would you, besides for misclicks), as there is no prompt for your presence language
                    and because you dont select your presence language, it doesnt create the file, causing System.IO.DirectoryNotFoundException to happen when you start
                    the true problem arises from the fact that this is within a catch block, so it wont crash on start, but it wont ever load your setting

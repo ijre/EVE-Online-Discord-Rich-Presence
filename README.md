@@ -7,16 +7,15 @@
   * **Add full\* support for: Russian, German, and Japanese (requires translators)**
 
 * **In progress:**
-   * **Languages:**  
-     * **Japanese**
+  * **Add non-English -> English support for game readout**
 
 * **Done:**
-  * **Add non-English -> English support**
   * **Languages:**
     * **French**
     * **English**
     * **Russian (partially)**
     * **German (partially)**
+    * **Japanese (partially)**
 
 **\* Full is defined as both your actual Rich Presence and the ingame names grabbed being of the target language. Right now only the ingame names are in the target language except for English and French, who have both.**  
 # README:
