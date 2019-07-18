@@ -55,6 +55,7 @@
             this.button1.TabIndex = 0;
             this.button1.Text = "Browse";
             this.button1.UseVisualStyleBackColor = true;
+            this.button1.Visible = false;
             this.button1.Click += new System.EventHandler(this.Button1_Click);
             // 
             // textBox1
@@ -64,7 +65,7 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
             this.textBox1.Size = new System.Drawing.Size(163, 45);
-            this.textBox1.TabIndex = 1;
+            this.textBox1.TabIndex = 3;
             this.textBox1.Text = "Use the button below to select your most recent Gamelogs file.";
             // 
             // textBox3
@@ -108,7 +109,7 @@
             this.button2.Location = new System.Drawing.Point(260, -1);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(41, 45);
-            this.button2.TabIndex = 9;
+            this.button2.TabIndex = 1;
             this.button2.Text = "Close";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.Button2_Click);
@@ -127,7 +128,7 @@
             this.button3.Location = new System.Drawing.Point(-1, -1);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(60, 45);
-            this.button3.TabIndex = 11;
+            this.button3.TabIndex = 2;
             this.button3.Text = "Minimize";
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.Button3_Click);

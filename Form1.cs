@@ -12,7 +12,7 @@ namespace eve_discord_rpc
         public Form1()
         {
             InitializeComponent();
-            ButtonCheck();
+            ButtonLoad();
         }
 
         private void PresenceUpdate(string details, string state)
@@ -31,8 +31,6 @@ namespace eve_discord_rpc
         private void Loop(string fileDir)
         {
 #if _NDEBUG
-            textBox4.Text = "Parsing file...";
-
             try
             {
                 Process tryProcess = Process.GetProcessesByName("exefile")[0];
@@ -42,6 +40,7 @@ namespace eve_discord_rpc
                 MessageBox.Show("Fatal error: Could not find EVE Online process, closing.", "Fatal error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Application.Exit();
             }
+            textBox4.Text = "Parsing file...";
 #endif
             Process process = Process.GetProcessesByName("exefile")[0];
 
@@ -90,11 +89,18 @@ namespace eve_discord_rpc
                         presenceThread.Join();
                         Application.ExitThread();
                     }
+                    else
+                        Application.ExitThread();
                 }
+                else
+                    Application.ExitThread();
             }
 
-            if (frenchCB.Checked)
+            else if (frenchCB.Checked)
             {
+                // Saute = jump
+                // Parte de = undock
+                // amarrage = dock(ing)
                 if (data.LastIndexOf("Saute") > data.LastIndexOf("amarrage") && data.LastIndexOf("Saute") > data.LastIndexOf("Part de"))
                 {
                     Thread.Sleep(1000);
@@ -141,7 +147,7 @@ namespace eve_discord_rpc
                         Application.ExitThread();
                     }
                 }
-                else if (data.LastIndexOf("amarrage") > data.LastIndexOf("Part de") && data.LastIndexOf("acceptée") > data.LastIndexOf("Saute"))
+                else if (data.LastIndexOf("amarrage") > data.LastIndexOf("Part de") && data.LastIndexOf("amarrage") > data.LastIndexOf("Saute"))
                 {
                     Thread.Sleep(1000);
                     if (data.Substring(data.LastIndexOf("amarrage")).IndexOf("amarrage a été acceptée. Votre vaisseau va être remorqué jusqu'à la station.") == 0)
@@ -161,7 +167,7 @@ namespace eve_discord_rpc
                             }
                             else if (ingameCB.Checked)
                             {
-                                Thread presenceThread = new Thread(() => PresenceUpdate("Jouer à EVE, sous le nom: " + charName, "En volant dans: " + full));
+                                Thread presenceThread = new Thread(() => PresenceUpdate("Jouer à EVE, sous le nom: " + charName, "Amarré(e) à la station: " + full));
                                 presenceThread.Start();
                                 presenceThread.Join();
                                 Application.ExitThread();
@@ -169,15 +175,12 @@ namespace eve_discord_rpc
                         }
                     }
                     else
-                    {
                         Application.ExitThread();
-                    }
                 }
                 else
-                {
                     Application.ExitThread();
-                }
             }
+
             else if (englishCB.Checked)
             {
                 if (data.LastIndexOf(" dock ") > data.LastIndexOf("Undocking") && data.LastIndexOf(" dock ") > data.LastIndexOf("Jumping"))
@@ -192,6 +195,8 @@ namespace eve_discord_rpc
                         presenceThread.Join();
                         Application.ExitThread();
                     }
+                    else
+                        Application.ExitThread();
                 }
 
                 else if (data.LastIndexOf("Jumping") > data.LastIndexOf(" dock ") && data.LastIndexOf("Jumping") > data.LastIndexOf("Undocking"))
@@ -210,6 +215,48 @@ namespace eve_discord_rpc
                     Thread.Sleep(1000);
                     var half = data.Substring(data.LastIndexOf("Undocking"), data.LastIndexOf("\r") - data.LastIndexOf("Undocking"));
                     var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("solar") - 1) - half.LastIndexOf("to") - 3);
+                    Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                    presenceThread.Start();
+                    presenceThread.Join();
+                    Application.ExitThread();
+                }
+                else
+                    Application.ExitThread();
+            }
+
+            else if (germanCB.Checked)
+            {
+                // Springe = jump
+                // Abdocken = undock
+                // Andockerlaubnis = dock request
+                if (data.LastIndexOf("Andockerlaubnis") > data.LastIndexOf("Abdocken") && data.LastIndexOf("Andockerlaubnis") > data.LastIndexOf("Springe"))
+                {
+                    Thread.Sleep(1000);
+                    if (data.Substring(data.LastIndexOf("akzeptiert")).IndexOf("akzeptiert. Ihr Schiff") == 0)
+                    {
+                        var full = data.Substring(data.LastIndexOf("Andockerlaubnis"), data.IndexOf("\"", data.IndexOf("\"", data.LastIndexOf("Andockerlaubnis")) + 1) - data.LastIndexOf("Andockerlaubnis"));
+                        Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Docked at station: " + full.Substring(full.IndexOf("\"") + 1)));
+                        presenceThread.Start();
+                        presenceThread.Join();
+                        Application.ExitThread();
+                    }
+                }
+                else if (data.LastIndexOf("Abdocken") > data.LastIndexOf("Andockerlaubnis") && data.LastIndexOf("Abdocken") > data.LastIndexOf("Springe"))
+                {
+                    Thread.Sleep(1000);
+                    var half = data.Substring(data.LastIndexOf("Abdocken"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Abdocken")) + 1) - data.LastIndexOf("Abdocken"));
+                    var mouthfull = half.IndexOf("\"", half.IndexOf("\"") + (half.IndexOf("\"", half.IndexOf("\"") + 1)));
+                    var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1) - mouthfull) - 1);
+                    Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
+                    presenceThread.Start();
+                    presenceThread.Join();
+                    Application.ExitThread();
+                }
+                else if (data.LastIndexOf("Springe") > data.LastIndexOf("Andockerlaubnis") && data.LastIndexOf("Springe") > data.LastIndexOf("Abdocken"))
+                {
+                    Thread.Sleep(1000);
+                    var half = data.Substring(data.LastIndexOf("Springe"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Springe")) + 1) - data.LastIndexOf("Springe"));
+                    var full = half.Substring(half.IndexOf("\"", half.IndexOf("nach")) + 1, half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("nach")) + 1) - half.IndexOf("\"", half.IndexOf("nach")) - 1);
                     Thread presenceThread = new Thread(() => PresenceUpdate("Playing EVE, under the name: " + charName, "Flying in: " + full));
                     presenceThread.Start();
                     presenceThread.Join();
@@ -258,7 +305,8 @@ namespace eve_discord_rpc
                 if (ingameCB.Checked == true)
                     ingameCB.Checked = false;
 
-                File.WriteAllText(Application.StartupPath + "/settings/" + "presenceSetting.txt", "english");
+                File.WriteAllText(Application.StartupPath + "/settings/" + "presenceSettings.txt", "english");
+                button1.Visible = true;
             }
         }
 
@@ -270,7 +318,8 @@ namespace eve_discord_rpc
                 if (englishPresCB.Checked == true)
                     englishPresCB.Checked = false;
 
-                File.WriteAllText(Application.StartupPath + "/settings/" + "presenceSetting.txt", "ingame");
+                File.WriteAllText(Application.StartupPath + "/settings/" + "presenceSettings.txt", "ingame");
+                button1.Visible = true;
             }
         }
 
@@ -318,7 +367,7 @@ namespace eve_discord_rpc
             notifyIcon1.Visible = false;
         }
 
-        private void ButtonCheck()
+        private void ButtonLoad()
         {
             try
             {
@@ -366,7 +415,25 @@ namespace eve_discord_rpc
                 }
             }
             catch
-            { FolderCheckem(); }
+            {
+                try
+                {
+                    if (File.ReadAllText(Application.StartupPath + "/settings/" + "language.txt") == "english")
+                    {
+                        englishCB.Checked = true;
+                        ingameCB.Visible = false;
+                        textBox3.Visible = false;
+                        englishPresCB.Visible = false;
+                    }
+                }
+                catch { FolderCheckem(); }
+                /* 
+                   the above is possible to happen if someone were to select English and never switch (why would you, besides for misclicks), as there is no prompt for your presence language
+                   and because you dont select your presence language, it doesnt create the file, causing System.IO.DirectoryNotFoundException to happen when you start
+                   the true problem arises from the fact that this is within a catch block, so it wont crash on start, but it wont ever load your setting
+                */
+                FolderCheckem();
+            }
         }
 
         private void ButtonSave()
@@ -516,6 +583,7 @@ namespace eve_discord_rpc
                     ingameCB.Visible = false;
                     textBox3.Visible = false;
                     englishPresCB.Visible = false;
+                    button1.Visible = true;
                 }
                 else
                 {
@@ -524,6 +592,7 @@ namespace eve_discord_rpc
                     ingameCB.Visible = false;
                     textBox3.Visible = false;
                     englishPresCB.Visible = false;
+                    button1.Visible = true;
                 }
             }
         }

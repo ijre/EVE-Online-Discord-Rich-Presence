@@ -4,13 +4,11 @@
 # Hello, and welcome to my EVE Online Discord Rich Presence repository; this is a work in progress so expect bugs and other shenanigans, README at the bottom.
 
 * **Todo:**
-  * **Add full\* support for other languages (requires translators)**
-  * **Languages:**
-     * **Japanese**
+  * **Add full\* support for: Russian, German, and Japanese (requires translators)**
 
 * **In progress:**
    * **Languages:**  
-     * **German**
+     * **Japanese**
 
 * **Done:**
   * **Add non-English -> English support**
@@ -18,6 +16,7 @@
     * **French**
     * **English**
     * **Russian (partially)**
+    * **German (partially)**
 
 **\* Full is defined as both your actual Rich Presence and the ingame names grabbed being of the target language. Right now only the ingame names are in the target language except for English and French, who have both.**  
 # README:
