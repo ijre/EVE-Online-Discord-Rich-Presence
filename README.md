@@ -1,3 +1,4 @@
+# ARCHIVED BECAUSE DISCORD RICH PRESENCE IS NOW UNSUPPORTED
 ![screenshot1](https://puu.sh/DReDY/a4b505c1ec.png)
 ![screenshot2](https://puu.sh/DReCl/136ce27d78.png)
 
