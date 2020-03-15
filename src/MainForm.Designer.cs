@@ -29,55 +29,52 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.button1 = new System.Windows.Forms.Button();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.Browse = new System.Windows.Forms.Button();
+            this.GamelogsText = new System.Windows.Forms.TextBox();
+            this.PresenceLanguage = new System.Windows.Forms.TextBox();
             this.englishPresCB = new System.Windows.Forms.CheckBox();
-            this.ingameCB = new System.Windows.Forms.CheckBox();
-            this.button2 = new System.Windows.Forms.Button();
-            this.textBox4 = new System.Windows.Forms.TextBox();
-            this.button3 = new System.Windows.Forms.Button();
-            this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
-            this.textBox5 = new System.Windows.Forms.TextBox();
-            this.russianCB = new System.Windows.Forms.CheckBox();
-            this.germanCB = new System.Windows.Forms.CheckBox();
-            this.frenchCB = new System.Windows.Forms.CheckBox();
-            this.japaneseCB = new System.Windows.Forms.CheckBox();
-            this.englishCB = new System.Windows.Forms.CheckBox();
+            this.ingame = new System.Windows.Forms.CheckBox();
+            this.ParsingBox = new System.Windows.Forms.TextBox();
+            this.LanguageText = new System.Windows.Forms.TextBox();
+            this.Russian = new System.Windows.Forms.CheckBox();
+            this.German = new System.Windows.Forms.CheckBox();
+            this.French = new System.Windows.Forms.CheckBox();
+            this.Japanese = new System.Windows.Forms.CheckBox();
+            this.English = new System.Windows.Forms.CheckBox();
+            this.PresenceTimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
-            // button1
+            // Browse
             // 
-            this.button1.Location = new System.Drawing.Point(106, 63);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(95, 26);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Browse";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Visible = false;
-            this.button1.Click += new System.EventHandler(this.Button1_Click);
+            this.Browse.Location = new System.Drawing.Point(106, 63);
+            this.Browse.Name = "Browse";
+            this.Browse.Size = new System.Drawing.Size(95, 26);
+            this.Browse.TabIndex = 0;
+            this.Browse.Text = "Browse";
+            this.Browse.UseVisualStyleBackColor = true;
+            this.Browse.Visible = false;
+            this.Browse.Click += new System.EventHandler(this.Browse_Click);
             // 
-            // textBox1
+            // GamelogsText
             // 
-            this.textBox1.Location = new System.Drawing.Point(79, 12);
-            this.textBox1.Multiline = true;
-            this.textBox1.Name = "textBox1";
-            this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(163, 45);
-            this.textBox1.TabIndex = 3;
-            this.textBox1.Text = "Use the button below to select your most recent Gamelogs file.";
+            this.GamelogsText.Location = new System.Drawing.Point(79, 12);
+            this.GamelogsText.Multiline = true;
+            this.GamelogsText.Name = "GamelogsText";
+            this.GamelogsText.ReadOnly = true;
+            this.GamelogsText.Size = new System.Drawing.Size(163, 45);
+            this.GamelogsText.TabIndex = 3;
+            this.GamelogsText.Text = "Use the button below to select your most recent Gamelogs file.";
             // 
-            // textBox3
+            // PresenceLanguage
             // 
-            this.textBox3.Location = new System.Drawing.Point(106, 216);
-            this.textBox3.Multiline = true;
-            this.textBox3.Name = "textBox3";
-            this.textBox3.ReadOnly = true;
-            this.textBox3.Size = new System.Drawing.Size(95, 79);
-            this.textBox3.TabIndex = 6;
-            this.textBox3.Text = "Would you like your presence to be in English, or your in game language?";
-            this.textBox3.Visible = false;
+            this.PresenceLanguage.Location = new System.Drawing.Point(106, 216);
+            this.PresenceLanguage.Multiline = true;
+            this.PresenceLanguage.Name = "PresenceLanguage";
+            this.PresenceLanguage.ReadOnly = true;
+            this.PresenceLanguage.Size = new System.Drawing.Size(95, 79);
+            this.PresenceLanguage.TabIndex = 6;
+            this.PresenceLanguage.Text = "Would you like your presence to be in English, or your in game language?";
+            this.PresenceLanguage.Visible = false;
             // 
             // englishPresCB
             // 
@@ -90,149 +87,125 @@
             this.englishPresCB.Text = "English";
             this.englishPresCB.UseVisualStyleBackColor = true;
             this.englishPresCB.Visible = false;
-            this.englishPresCB.CheckedChanged += new System.EventHandler(this.EnglishCB_CheckedChanged);
+            this.englishPresCB.CheckedChanged += new System.EventHandler(this.EnglishPresCB_CheckedChanged);
             // 
-            // ingameCB
+            // ingame
             // 
-            this.ingameCB.AutoSize = true;
-            this.ingameCB.Location = new System.Drawing.Point(189, 301);
-            this.ingameCB.Name = "ingameCB";
-            this.ingameCB.Size = new System.Drawing.Size(64, 17);
-            this.ingameCB.TabIndex = 8;
-            this.ingameCB.Text = "In-game";
-            this.ingameCB.UseVisualStyleBackColor = true;
-            this.ingameCB.Visible = false;
-            this.ingameCB.CheckedChanged += new System.EventHandler(this.IngameCB_CheckedChanged);
+            this.ingame.AutoSize = true;
+            this.ingame.Location = new System.Drawing.Point(189, 301);
+            this.ingame.Name = "ingame";
+            this.ingame.Size = new System.Drawing.Size(64, 17);
+            this.ingame.TabIndex = 8;
+            this.ingame.Text = "In-game";
+            this.ingame.UseVisualStyleBackColor = true;
+            this.ingame.Visible = false;
+            this.ingame.CheckedChanged += new System.EventHandler(this.IngameCB_CheckedChanged);
             // 
-            // button2
+            // ParsingBox
             // 
-            this.button2.Location = new System.Drawing.Point(260, -1);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(41, 45);
-            this.button2.TabIndex = 1;
-            this.button2.Text = "Close";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.Button2_Click);
+            this.ParsingBox.Location = new System.Drawing.Point(207, 63);
+            this.ParsingBox.Multiline = true;
+            this.ParsingBox.Name = "ParsingBox";
+            this.ParsingBox.ReadOnly = true;
+            this.ParsingBox.Size = new System.Drawing.Size(70, 48);
+            this.ParsingBox.TabIndex = 10;
             // 
-            // textBox4
+            // LanguageText
             // 
-            this.textBox4.Location = new System.Drawing.Point(207, 63);
-            this.textBox4.Multiline = true;
-            this.textBox4.Name = "textBox4";
-            this.textBox4.ReadOnly = true;
-            this.textBox4.Size = new System.Drawing.Size(70, 48);
-            this.textBox4.TabIndex = 10;
+            this.LanguageText.Location = new System.Drawing.Point(106, 95);
+            this.LanguageText.Multiline = true;
+            this.LanguageText.Name = "LanguageText";
+            this.LanguageText.ReadOnly = true;
+            this.LanguageText.Size = new System.Drawing.Size(95, 35);
+            this.LanguageText.TabIndex = 12;
+            this.LanguageText.Text = "What language is your game in?";
             // 
-            // button3
+            // Russian
             // 
-            this.button3.Location = new System.Drawing.Point(-1, -1);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(60, 45);
-            this.button3.TabIndex = 2;
-            this.button3.Text = "Minimize";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.Button3_Click);
+            this.Russian.AutoSize = true;
+            this.Russian.Location = new System.Drawing.Point(106, 158);
+            this.Russian.Name = "Russian";
+            this.Russian.Size = new System.Drawing.Size(41, 17);
+            this.Russian.TabIndex = 13;
+            this.Russian.Text = "РУ";
+            this.Russian.UseVisualStyleBackColor = true;
+            this.Russian.CheckedChanged += new System.EventHandler(this.Russian_CheckedChanged);
             // 
-            // notifyIcon1
+            // German
             // 
-            this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
-            this.notifyIcon1.Text = "EVE Online Discord RPC";
-            this.notifyIcon1.DoubleClick += new System.EventHandler(this.NotifyIcon1_DoubleClick);
+            this.German.AutoSize = true;
+            this.German.Location = new System.Drawing.Point(160, 158);
+            this.German.Name = "German";
+            this.German.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.German.Size = new System.Drawing.Size(41, 17);
+            this.German.TabIndex = 14;
+            this.German.Text = "DE";
+            this.German.UseVisualStyleBackColor = true;
+            this.German.CheckedChanged += new System.EventHandler(this.German_CheckedChanged);
             // 
-            // textBox5
+            // French
             // 
-            this.textBox5.Location = new System.Drawing.Point(106, 95);
-            this.textBox5.Multiline = true;
-            this.textBox5.Name = "textBox5";
-            this.textBox5.ReadOnly = true;
-            this.textBox5.Size = new System.Drawing.Size(95, 35);
-            this.textBox5.TabIndex = 12;
-            this.textBox5.Text = "What language is your game in?";
+            this.French.AutoSize = true;
+            this.French.Location = new System.Drawing.Point(106, 181);
+            this.French.Name = "French";
+            this.French.Size = new System.Drawing.Size(40, 17);
+            this.French.TabIndex = 15;
+            this.French.Text = "FR";
+            this.French.UseVisualStyleBackColor = true;
+            this.French.CheckedChanged += new System.EventHandler(this.French_CheckedChanged);
             // 
-            // russianCB
+            // Japanese
             // 
-            this.russianCB.AutoSize = true;
-            this.russianCB.Location = new System.Drawing.Point(106, 158);
-            this.russianCB.Name = "russianCB";
-            this.russianCB.Size = new System.Drawing.Size(41, 17);
-            this.russianCB.TabIndex = 13;
-            this.russianCB.Text = "РУ";
-            this.russianCB.UseVisualStyleBackColor = true;
-            this.russianCB.CheckedChanged += new System.EventHandler(this.RussianCB_CheckedChanged);
+            this.Japanese.AutoSize = true;
+            this.Japanese.Location = new System.Drawing.Point(152, 181);
+            this.Japanese.Name = "Japanese";
+            this.Japanese.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.Japanese.Size = new System.Drawing.Size(62, 17);
+            this.Japanese.TabIndex = 16;
+            this.Japanese.Text = "日本語";
+            this.Japanese.UseVisualStyleBackColor = true;
+            this.Japanese.CheckedChanged += new System.EventHandler(this.Japanese_CheckedChanged);
             // 
-            // germanCB
+            // English
             // 
-            this.germanCB.AutoSize = true;
-            this.germanCB.Location = new System.Drawing.Point(160, 158);
-            this.germanCB.Name = "germanCB";
-            this.germanCB.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.germanCB.Size = new System.Drawing.Size(41, 17);
-            this.germanCB.TabIndex = 14;
-            this.germanCB.Text = "DE";
-            this.germanCB.UseVisualStyleBackColor = true;
-            this.germanCB.CheckedChanged += new System.EventHandler(this.GermanCB_CheckedChanged);
+            this.English.AutoSize = true;
+            this.English.Location = new System.Drawing.Point(132, 136);
+            this.English.Name = "English";
+            this.English.Size = new System.Drawing.Size(41, 17);
+            this.English.TabIndex = 17;
+            this.English.Text = "EN";
+            this.English.UseVisualStyleBackColor = true;
+            this.English.CheckedChanged += new System.EventHandler(this.English_CheckedChanged);
             // 
-            // frenchCB
+            // PresenceTimer
             // 
-            this.frenchCB.AutoSize = true;
-            this.frenchCB.Location = new System.Drawing.Point(106, 181);
-            this.frenchCB.Name = "frenchCB";
-            this.frenchCB.Size = new System.Drawing.Size(40, 17);
-            this.frenchCB.TabIndex = 15;
-            this.frenchCB.Text = "FR";
-            this.frenchCB.UseVisualStyleBackColor = true;
-            this.frenchCB.CheckedChanged += new System.EventHandler(this.FrenchCB_CheckedChanged);
+            this.PresenceTimer.Interval = 15000;
+            this.PresenceTimer.Tick += new System.EventHandler(this.PresenceTimer_Tick);
             // 
-            // japaneseCB
-            // 
-            this.japaneseCB.AutoSize = true;
-            this.japaneseCB.Location = new System.Drawing.Point(152, 181);
-            this.japaneseCB.Name = "japaneseCB";
-            this.japaneseCB.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.japaneseCB.Size = new System.Drawing.Size(62, 17);
-            this.japaneseCB.TabIndex = 16;
-            this.japaneseCB.Text = "日本語";
-            this.japaneseCB.UseVisualStyleBackColor = true;
-            this.japaneseCB.CheckedChanged += new System.EventHandler(this.JapaneseCB_CheckedChanged);
-            // 
-            // englishCB
-            // 
-            this.englishCB.AutoSize = true;
-            this.englishCB.Location = new System.Drawing.Point(132, 136);
-            this.englishCB.Name = "englishCB";
-            this.englishCB.Size = new System.Drawing.Size(41, 17);
-            this.englishCB.TabIndex = 17;
-            this.englishCB.Text = "EN";
-            this.englishCB.UseVisualStyleBackColor = true;
-            this.englishCB.CheckedChanged += new System.EventHandler(this.EnglishCB_CheckedChanged_1);
-            // 
-            // Form1
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.WindowFrame;
             this.ClientSize = new System.Drawing.Size(300, 321);
-            this.ControlBox = false;
-            this.Controls.Add(this.englishCB);
-            this.Controls.Add(this.japaneseCB);
-            this.Controls.Add(this.frenchCB);
-            this.Controls.Add(this.germanCB);
-            this.Controls.Add(this.russianCB);
-            this.Controls.Add(this.textBox5);
-            this.Controls.Add(this.button3);
-            this.Controls.Add(this.textBox4);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.ingameCB);
+            this.Controls.Add(this.English);
+            this.Controls.Add(this.Japanese);
+            this.Controls.Add(this.French);
+            this.Controls.Add(this.German);
+            this.Controls.Add(this.Russian);
+            this.Controls.Add(this.LanguageText);
+            this.Controls.Add(this.ParsingBox);
+            this.Controls.Add(this.ingame);
             this.Controls.Add(this.englishPresCB);
-            this.Controls.Add(this.textBox3);
-            this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.PresenceLanguage);
+            this.Controls.Add(this.GamelogsText);
+            this.Controls.Add(this.Browse);
             this.MaximizeBox = false;
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "EVE Online Discord RPC";
-            this.SizeChanged += new System.EventHandler(this.Form1_SizeChanged);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -240,21 +213,19 @@
 
         #endregion
 
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.TextBox textBox3;
+        private System.Windows.Forms.Button Browse;
+        private System.Windows.Forms.TextBox GamelogsText;
+        private System.Windows.Forms.TextBox PresenceLanguage;
         private System.Windows.Forms.CheckBox englishPresCB;
-        private System.Windows.Forms.CheckBox ingameCB;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.TextBox textBox4;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.NotifyIcon notifyIcon1;
-        private System.Windows.Forms.TextBox textBox5;
-        private System.Windows.Forms.CheckBox russianCB;
-        private System.Windows.Forms.CheckBox germanCB;
-        private System.Windows.Forms.CheckBox frenchCB;
-        private System.Windows.Forms.CheckBox japaneseCB;
-        private System.Windows.Forms.CheckBox englishCB;
+        private System.Windows.Forms.CheckBox ingame;
+        private System.Windows.Forms.TextBox ParsingBox;
+        private System.Windows.Forms.TextBox LanguageText;
+        private System.Windows.Forms.CheckBox Russian;
+        private System.Windows.Forms.CheckBox German;
+        private System.Windows.Forms.CheckBox French;
+        private System.Windows.Forms.CheckBox Japanese;
+        private System.Windows.Forms.CheckBox English;
+        private System.Windows.Forms.Timer PresenceTimer;
     }
 }
 
