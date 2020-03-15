@@ -5,16 +5,13 @@ using System.Threading;
 using System.Diagnostics;
 using DiscordRPC;
 
-/* TODO:    rename form1 to MainForm
-            setup timer on form
-            refactor code
-*/
+// TODO: setup timer on form, refactor code
 
 namespace eve_discord_rpc
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
             ButtonLoad();
