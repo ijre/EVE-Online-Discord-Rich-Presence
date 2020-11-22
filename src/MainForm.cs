@@ -15,9 +15,9 @@ namespace eve_discord_rpc
 
         enum ActionSearchReturnTypes
         {
-            FIRST = 1,
-            SECOND,
-            THIRD,
+            JUMPING = 1,
+            UNDOCKING,
+            DOCKING,
             ERROR
         }
 
@@ -73,6 +73,63 @@ namespace eve_discord_rpc
             }
         }
 
+        #region PresenceHelpers
+        private int[] FindLastAction(string[] data, string jump, string undock, string dock)
+        {
+            int jumpLoc = -1;
+            int undockLoc = -1;
+            int dockLoc = -1;
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (jumpLoc != -1 && undockLoc != -1 && dockLoc != -1)
+                    break;
+
+                if (data[i].LastIndexOf(jump) != -1)
+                {
+                    jumpLoc = i;
+                }
+                else if (data[i].LastIndexOf(undock) != -1)
+                {
+                    undockLoc = i;
+                }
+                else if (data[i].LastIndexOf(dock) != -1)
+                {
+                    dockLoc = i;
+                }
+            }
+
+            if (jumpLoc > undockLoc && jumpLoc > dockLoc)
+            {
+                return new[] { jumpLoc, 1 };
+            }
+            if (undockLoc > jumpLoc && undockLoc > dockLoc)
+            {
+                return new[] { undockLoc, 2 };
+            }
+            if (dockLoc > jumpLoc && dockLoc > undockLoc)
+            {
+                return new[] { dockLoc, 3 };
+            }
+
+            return new[] { 0, 4 };
+        }
+
+        private string GetStringBetween(string main, string before, string after, bool getLocalized)
+        {
+            if (!getLocalized && main.Contains("localized hint"))
+            {
+                main = main.Remove(main.IndexOf("<localized hint=", main.LastIndexOf(before)),
+                    main.IndexOf(">", main.IndexOf("<localized hint=", main.LastIndexOf(before))) + 1 - main.IndexOf("<localized hint=", main.LastIndexOf(before)));
+            }
+
+            return getLocalized ?
+                main.Substring(main.IndexOf("\"", main.LastIndexOf(before)) + 1, main.LastIndexOf("\"", main.LastIndexOf(after)) - (main.IndexOf("\"", main.LastIndexOf(before)) + 1))
+                :
+                main.Substring(main.LastIndexOf(before) + before.Length, main.LastIndexOf(after) - (main.LastIndexOf(before) + before.Length));
+        }
+        #endregion
+
         private void PresenceTimer_Tick(object sender, EventArgs e)
         {
             string[] dataArray = File.ReadAllLines(file).ToArray();
@@ -86,6 +143,7 @@ namespace eve_discord_rpc
             }
             catch (IndexOutOfRangeException)
             {
+#if _NDEBUG
                 Client.SetPresence(new RichPresence
                 {
                     Details = "Tell this user they left their RPC program up for EVE Online!",
@@ -97,67 +155,103 @@ namespace eve_discord_rpc
                 });
 
                 return;
+#endif
             }
 
-            string details = $"Playing EVE, under the name \"{charName}\"";
+            string details = $"Playing EVE, under the name: \"{charName}\"";
             string state = "";
 
             #region PresenceSetting
             if (English.Checked)
             {
                 int[] mostRecentAction = FindLastAction(dataArray, "Jumping", "Undocking", " dock ");
+                var mostRecentActionType = (ActionSearchReturnTypes)mostRecentAction[1];
 
                 string data = dataArray[mostRecentAction[0]];
-                var mostRecentActionType = (ActionSearchReturnTypes)mostRecentAction[1];
 
                 switch (mostRecentActionType)
                 {
-                    case ActionSearchReturnTypes.FIRST:
+                    case ActionSearchReturnTypes.ERROR:
+                        return;
+                    case ActionSearchReturnTypes.JUMPING:
                     {
                         state = $"Flying in: {data.Substring(data.LastIndexOf(" to ") + 4)}";
                         break;
                     }
-                    case ActionSearchReturnTypes.SECOND:
+                    case ActionSearchReturnTypes.UNDOCKING:
                     {
-                        string location = data.Substring(data.LastIndexOf(" to ") + 4, data.LastIndexOf(" solar ") - (data.LastIndexOf(" to ") + 4));
-
-                        state = $"Flying in: {location}";
+                        state = $"Flying in: {GetStringBetween(data, " to ", " solar ", false)}";
                         break;
                     }
-                    case ActionSearchReturnTypes.THIRD:
+                    case ActionSearchReturnTypes.DOCKING:
                     {
                         for (int i = mostRecentAction[0]; i < dataArray.Length; i++)
                         {
                             if (!dataArray[i].Contains("accepted"))
                                 continue;
 
-                            string location = data.Substring(data.IndexOf(" at ") + 4,
-                                data.LastIndexOf(" station") - (data.IndexOf(" at ") + 4));
+                            state = $"Docked at station: {GetStringBetween(data, " at ", " station", false)}";
 
-                            state = $"Docked at station: {location}";
-
-                            goto SkipReturn;
+                            break;
                         }
 
-                        return;
-
-                        // it'll incorrectly say a player is docked somewhere when they werent accepted if we dont return
-                        // thus the reason for using goto to jump over said return if it finds the accepted message
-
-                        SkipReturn:
+                        if (string.IsNullOrWhiteSpace(state))
+                            return;
 
                         break;
                     }
-                    case ActionSearchReturnTypes.ERROR:
-                        return;
                 }
             }
             else if (French.Checked)
             {
                 // Saute = jump
-                // Parte de = undock
-                // amarrage = dock(ing)
+                // Part de = undock
+                // amarrer = dock (in request)
+                // amarrage = dock (in request acceptance)
+                // acceptée = accepted
 
+                int[] mostRecentAction = FindLastAction(dataArray, "Saute de", "Part de", "s'amarrer");
+                var mostRecentActionType = (ActionSearchReturnTypes)mostRecentAction[1];
+
+                string data = dataArray[mostRecentAction[0]];
+
+                bool usingEnglishTooltips = data.Contains("localized hint") && EnglishPresCB.Checked;
+
+                switch (mostRecentActionType)
+                {
+                    case ActionSearchReturnTypes.ERROR:
+                        return;
+                    case ActionSearchReturnTypes.JUMPING:
+                    {
+                        state = (EnglishPresCB.Checked ? "Flying in: " : "En volant dans: ") + GetStringBetween(data, "à ", "*", usingEnglishTooltips);
+                        break;
+                    }
+                    case ActionSearchReturnTypes.UNDOCKING:
+                    {
+                        state = (EnglishPresCB.Checked ? "Flying in: " : "En volant dans: ") + GetStringBetween(data, " solaire ", "*.", usingEnglishTooltips);
+                        break;
+                    }
+                    case ActionSearchReturnTypes.DOCKING:
+                    {
+                        for (int i = mostRecentAction[0]; i < dataArray.Length; i++)
+                        {
+                            if (!dataArray[i].Contains("acceptée"))
+                                continue;
+
+                            state = (EnglishPresCB.Checked ? "Docked at station: " : "Amarré(e) à la station: ") + GetStringBetween(data, "station ", "*", usingEnglishTooltips);
+
+                            break;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(state))
+                            return;
+
+                        break;
+                    }
+                }
+
+                if (IngamePresCB.Checked)
+                    details = $"Jouer à EVE, sous le nom: \"{charName}\"";
             }/*
             else if (Russian.Checked)
             {
@@ -319,50 +413,7 @@ namespace eve_discord_rpc
         }
 
         #region Helpers
-        #region PresenceHelpers
-        private int[] FindLastAction(string[] data, string first, string second, string third)
-        {
-            int firstLoc = -1;
-            int secondLoc = -1;
-            int thirdLoc = -1;
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                if (firstLoc != -1 && secondLoc != -1 && thirdLoc != -1)
-                    break;
-
-                if (data[i].LastIndexOf(first) != -1)
-                {
-                    firstLoc = i;
-                }
-                else if (data[i].LastIndexOf(second) != -1)
-                {
-                    secondLoc = i;
-                }
-                else if (data[i].LastIndexOf(third) != -1)
-                {
-                    thirdLoc = i;
-                }
-            }
-
-            if (firstLoc > secondLoc && firstLoc > thirdLoc)
-            {
-                return new[] { firstLoc, 1 };
-            }
-            if (secondLoc > firstLoc && secondLoc > thirdLoc)
-            {
-                return new[] { secondLoc, 2 };
-            }
-            if (thirdLoc > firstLoc && thirdLoc > secondLoc)
-            {
-                return new[] { thirdLoc, 3 };
-            }
-
-            return new[] { data.Length - 1, 4 };
-        }
-        #endregion // PresenceHelpers
-
-        private void UncheckOthers(Control check, bool showIngamePres = false)
+        private void UncheckOthers(Control check)
         {
             for (int i = 0; i < Controls.Count; i++)
             {
@@ -375,7 +426,7 @@ namespace eve_discord_rpc
             SaveSettings(check.Name.ToLower(), true);
             PresLangQuestion.Visible = check.Name != English.Name;
             EnglishPresCB.Visible = check.Name != English.Name;
-            IngamePresCB.Visible = showIngamePres;
+            IngamePresCB.Visible = check.Name != English.Name;
         }
 
         private void SaveSettings(string newSetting, bool isGameLang)
@@ -429,7 +480,7 @@ namespace eve_discord_rpc
         private void French_CheckedChanged(object sender, EventArgs e)
         {
             if (French.Checked)
-                UncheckOthers(French, true);
+                UncheckOthers(French);
         }
 
         private void Russian_CheckedChanged(object sender, EventArgs e)
