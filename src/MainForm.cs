@@ -12,6 +12,14 @@ namespace eve_discord_rpc
         private readonly DiscordRpcClient Client = new DiscordRpcClient("688787694498611260");
         private string file = "";
 
+        enum PresenceTextReturnTypes
+        {
+            FIRST,
+            SECOND,
+            THIRD,
+            ERROR
+        }
+
         public MainForm()
         {
             InitializeComponent();
@@ -78,37 +86,33 @@ namespace eve_discord_rpc
             string state = "";
 
             #region PresenceSetting
-            if (Russian.Checked)
+            if (English.Checked)
             {
-                // Осуществляется = jump
-                // Выход из дока = undock
-                // Запрос входа в док = dock request
-                if (data.LastIndexOf("Осуществляется") > data.LastIndexOf("Выход из дока") && data.LastIndexOf("Осуществляется") > data.LastIndexOf("Запрос входа в док"))
+                if (data.LastIndexOf("Jumping") > data.LastIndexOf(" dock ") && data.LastIndexOf("Jumping") > data.LastIndexOf("Undocking"))
                 {
-                    var half = data.Substring(data.LastIndexOf("Осуществляется"), data.IndexOf("*", data.LastIndexOf("Осуществляется")) - data.LastIndexOf("Осуществляется"));
-                    var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
+                    var half = data.Substring(data.LastIndexOf("Jumping"), data.LastIndexOf("\n") - data.LastIndexOf("Jumping"));
+                    var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("\r") - half.LastIndexOf("to")) - 3);
 
                     details = "Playing EVE, under the name: " + charName;
                     state = "Flying in: " + full;
                 }
-                else if (data.LastIndexOf("Выход из дока") > data.LastIndexOf("Осуществляется") && data.LastIndexOf("Выход из дока") > data.LastIndexOf("Запрос входа в док"))
+                else if (data.LastIndexOf("Undocking") > data.LastIndexOf(" dock ") && data.LastIndexOf("Undocking") > data.LastIndexOf("Jumping"))
                 {
-                    var half = data.Substring(data.LastIndexOf("Выход из дока"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Выход из дока")) + 1) - data.LastIndexOf("Выход из дока"));
-                    var mouthfull = half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("\"", (half.IndexOf("\"") + 1)) + 1));
-                    var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
+                    var half = data.Substring(data.LastIndexOf("Undocking"), data.LastIndexOf("\r") - data.LastIndexOf("Undocking"));
+                    var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("solar") - 1) - half.LastIndexOf("to") - 3);
 
                     details = "Playing EVE, under the name: " + charName;
                     state = "Flying in: " + full;
                 }
-                else if (data.LastIndexOf("Запрос входа в док") > data.LastIndexOf("Выход из дока") && data.LastIndexOf("Запрос входа в док") > data.LastIndexOf("Осуществляется"))
+                else if (data.LastIndexOf(" dock ") > data.LastIndexOf("Undocking") && data.LastIndexOf(" dock ") > data.LastIndexOf("Jumping"))
                 {
-                    if (data.Substring(data.LastIndexOf("разрешение")).IndexOf("разрешение на использование дока станции. Приготовьтесь к приему буксира.") != -1)
+                    var half = data.Substring(data.LastIndexOf(" dock "), data.LastIndexOf("station") - data.LastIndexOf(" dock "));
+                    if (half.IndexOf("accepted") != -1)
                     {
-                        var half = data.Substring(data.LastIndexOf("Запрос входа в док"), data.IndexOf("\"", data.IndexOf("\"", data.LastIndexOf("Запрос входа в док")) + 1));
-                        var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - 1) - half.IndexOf("\""));
+                        var full = half.Substring(half.IndexOf("at") + 3, half.IndexOf("station") - 10);
 
                         details = "Playing EVE, under the name: " + charName;
-                        state = "Docked at: " + full;
+                        state = "Docked at station: " + full;
                     }
                 }
                 else
@@ -185,35 +189,38 @@ namespace eve_discord_rpc
                     else
                         details = "Actuellment absent" + (String.IsNullOrWhiteSpace(charName) ? "" : $", sous le nom: {charName}");
                 }
-
             }
-            else if (English.Checked)
+            else if (Russian.Checked)
             {
-                if (data.LastIndexOf("Jumping") > data.LastIndexOf(" dock ") && data.LastIndexOf("Jumping") > data.LastIndexOf("Undocking"))
+                // Осуществляется = jump
+                // Выход из дока = undock
+                // Запрос входа в док = dock request
+                if (data.LastIndexOf("Осуществляется") > data.LastIndexOf("Выход из дока") && data.LastIndexOf("Осуществляется") > data.LastIndexOf("Запрос входа в док"))
                 {
-                    var half = data.Substring(data.LastIndexOf("Jumping"), data.LastIndexOf("\n") - data.LastIndexOf("Jumping"));
-                    var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("\r") - half.LastIndexOf("to")) - 3);
+                    var half = data.Substring(data.LastIndexOf("Осуществляется"), data.IndexOf("*", data.LastIndexOf("Осуществляется")) - data.LastIndexOf("Осуществляется"));
+                    var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
 
                     details = "Playing EVE, under the name: " + charName;
                     state = "Flying in: " + full;
                 }
-                else if (data.LastIndexOf("Undocking") > data.LastIndexOf(" dock ") && data.LastIndexOf("Undocking") > data.LastIndexOf("Jumping"))
+                else if (data.LastIndexOf("Выход из дока") > data.LastIndexOf("Осуществляется") && data.LastIndexOf("Выход из дока") > data.LastIndexOf("Запрос входа в док"))
                 {
-                    var half = data.Substring(data.LastIndexOf("Undocking"), data.LastIndexOf("\r") - data.LastIndexOf("Undocking"));
-                    var full = half.Substring(half.LastIndexOf("to") + 3, (half.LastIndexOf("solar") - 1) - half.LastIndexOf("to") - 3);
+                    var half = data.Substring(data.LastIndexOf("Выход из дока"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Выход из дока")) + 1) - data.LastIndexOf("Выход из дока"));
+                    var mouthfull = half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("\"", (half.IndexOf("\"") + 1)) + 1));
+                    var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
 
                     details = "Playing EVE, under the name: " + charName;
                     state = "Flying in: " + full;
                 }
-                else if (data.LastIndexOf(" dock ") > data.LastIndexOf("Undocking") && data.LastIndexOf(" dock ") > data.LastIndexOf("Jumping"))
+                else if (data.LastIndexOf("Запрос входа в док") > data.LastIndexOf("Выход из дока") && data.LastIndexOf("Запрос входа в док") > data.LastIndexOf("Осуществляется"))
                 {
-                    var half = data.Substring(data.LastIndexOf(" dock "), data.LastIndexOf("station") - data.LastIndexOf(" dock "));
-                    if (half.IndexOf("accepted") != -1)
+                    if (data.Substring(data.LastIndexOf("разрешение")).IndexOf("разрешение на использование дока станции. Приготовьтесь к приему буксира.") != -1)
                     {
-                        var full = half.Substring(half.IndexOf("at") + 3, half.IndexOf("station") - 10);
+                        var half = data.Substring(data.LastIndexOf("Запрос входа в док"), data.IndexOf("\"", data.IndexOf("\"", data.LastIndexOf("Запрос входа в док")) + 1));
+                        var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - 1) - half.IndexOf("\""));
 
                         details = "Playing EVE, under the name: " + charName;
-                        state = "Docked at station: " + full;
+                        state = "Docked at: " + full;
                     }
                 }
                 else
@@ -331,6 +338,28 @@ namespace eve_discord_rpc
         }
 
         #region Helpers
+        #region PresenceHelpers
+        private PresenceTextReturnTypes FindLastAction(string data, string first, string second, string third)
+        {
+            PresenceTextReturnTypes ret = PresenceTextReturnTypes.ERROR;
+
+            if (data.LastIndexOf(first) > data.LastIndexOf(second) && data.LastIndexOf(first) > data.LastIndexOf(third))
+            {
+                ret = PresenceTextReturnTypes.FIRST;
+            }
+            else if (data.LastIndexOf(second) > data.LastIndexOf(first) && data.LastIndexOf(second) > data.LastIndexOf(third))
+            {
+                ret = PresenceTextReturnTypes.SECOND;
+            }
+            else if (data.LastIndexOf(third) > data.LastIndexOf(first) && data.LastIndexOf(third) > data.LastIndexOf(second))
+            {
+                ret = PresenceTextReturnTypes.THIRD;
+            }
+
+            return ret;
+        }
+        #endregion // PresenceHelpers
+
         private void UncheckOthers(Control check, bool showIngamePres = false)
         {
             for (int i = 0; i < Controls.Count; i++)
