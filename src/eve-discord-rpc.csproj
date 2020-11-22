@@ -67,7 +67,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExceptionExtension.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -114,7 +113,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DiscordRichPresence">
-      <Version>1.0.150</Version>
+      <Version>1.0.166</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
