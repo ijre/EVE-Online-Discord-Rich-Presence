@@ -2,16 +2,15 @@
 using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
-using static ExceptionExtension;
 using DiscordRPC;
-
-// TODO: further refactor code
 
 namespace eve_discord_rpc
 {
     public partial class MainForm : Form
     {
-        private readonly string settings = Application.StartupPath + "\\settings\\";
+        private readonly string LanguageSettings = $"{Application.StartupPath}\\Settings\\LanguageSettings.txt";
+        private readonly DiscordRpcClient Client = new DiscordRpcClient("688787694498611260");
+        private string file = "";
 
         public MainForm()
         {
@@ -19,63 +18,54 @@ namespace eve_discord_rpc
 
             try
             {
-                switch (File.ReadAllText(settings + "presenceSettings.txt"))
+                switch (File.ReadAllText(LanguageSettings))
                 {
                     case "english":
-                        englishPresCB.Checked = true;
+                        EnglishPresCB.Checked = true;
                         break;
                     case "ingame":
-                        ingame.Checked = true;
+                        IngamePresCB.Checked = true;
                         break;
                 }
-                switch (File.ReadAllText(settings + "language.txt"))
+
+                switch (File.ReadAllText(LanguageSettings))
                 {
                     case "russian":
                         Russian.Checked = true;
-                        ingame.Visible = false;
-                        PresenceLanguage.Visible = true;
-                        englishPresCB.Visible = true;
+                        IngamePresCB.Visible = false;
                         break;
+
                     case "french":
                         French.Checked = true;
-                        ingame.Visible = true;
-                        PresenceLanguage.Visible = true;
-                        englishPresCB.Visible = true;
+                        IngamePresCB.Visible = true;
                         break;
+
                     case "japanese":
                         Japanese.Checked = true;
-                        ingame.Visible = false;
-                        PresenceLanguage.Visible = true;
-                        englishPresCB.Visible = true;
+                        IngamePresCB.Visible = false;
                         break;
+
                     case "english":
                         English.Checked = true;
-                        ingame.Visible = false;
-                        PresenceLanguage.Visible = false;
-                        englishPresCB.Visible = false;
+                        IngamePresCB.Visible = false;
                         break;
+
                     case "german":
                         German.Checked = true;
-                        ingame.Visible = false;
-                        PresenceLanguage.Visible = true;
-                        englishPresCB.Visible = true;
+                        IngamePresCB.Visible = false;
                         break;
                 }
             }
             catch (DirectoryNotFoundException)
             {
-                Directory.CreateDirectory(settings);
+                Directory.CreateDirectory(Application.StartupPath + "\\Settings\\");
             }
-            catch (FileNotFoundException)
-            { }
+            catch (FileNotFoundException) { }
             catch (Exception ex)
             {
-                ex.ShowAsMessageBox(this, ex.Message);
+                MessageBox.Show(ex.Message, "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-        private readonly DiscordRpcClient client = new DiscordRpcClient("688787694498611260");
-        private string file = "";
 
         private void PresenceTimer_Tick(object sender, EventArgs e)
         {
@@ -136,7 +126,7 @@ namespace eve_discord_rpc
                     var mouthfull = half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("\"", (half.IndexOf("\"") + 1)) + 1));
                     // this skips past 2 quotations to find a 3rd quotation mark (the 3rd mark marks the beginning of the solar system name)
                     var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
-                    if (englishPresCB.Checked)
+                    if (EnglishPresCB.Checked)
                     {
                         details = "Playing EVE, under the name: " + charName;
                         state = "Flying in: " + full;
@@ -154,7 +144,7 @@ namespace eve_discord_rpc
                     // and this skips past 3 quotations to find a 4th quotation mark (the 4th mark marks the beginning of the solar system name)
                     // i know all of this is ungodly painful to look at but i couldnt think of a better way, and you cant use absolute values because different system name lengths and all that
                     var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
-                    if (englishPresCB.Checked)
+                    if (EnglishPresCB.Checked)
                     {
                         details = "Playing EVE, under the name: " + charName;
                         state = "Flying in: " + full;
@@ -175,7 +165,7 @@ namespace eve_discord_rpc
                         else
                         {
                             var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
-                            if (englishPresCB.Checked)
+                            if (EnglishPresCB.Checked)
                             {
                                 details = "Playing EVE, under the name: " + charName;
                                 state = "Docked at: " + full;
@@ -190,7 +180,7 @@ namespace eve_discord_rpc
                 }
                 else
                 {
-                    if (englishPresCB.Checked)
+                    if (EnglishPresCB.Checked)
                         details = "Idle" + (String.IsNullOrWhiteSpace(charName) ? "" : $", under the name: {charName}");
                     else
                         details = "Actuellment absent" + (String.IsNullOrWhiteSpace(charName) ? "" : $", sous le nom: {charName}");
@@ -299,7 +289,7 @@ namespace eve_discord_rpc
             #endregion
 
 
-            client.SetPresence(new RichPresence { Details = details, State = state, Assets = new Assets { LargeImageKey = "cover", LargeImageText = "https://github.com/ijre/EVE-Online_Discord-RPC" } });
+            Client.SetPresence(new RichPresence { Details = details, State = state, Assets = new Assets { LargeImageKey = "cover", LargeImageText = "https://github.com/ijre/EVE-Online_Discord-RPC" } });
             ParsingBox.Text = "Rich Presence set!";
         }
 
@@ -307,206 +297,137 @@ namespace eve_discord_rpc
         {
             try
             {
-                Process.GetProcessesByName("exefile")[0].Id.ToString();
+                // ReSharper disable once UnusedVariable
+                var forceThrow = Process.GetProcessesByName("exefile")[0].Id;
             }
             catch
             {
-                MessageBox.Show("Note: This program requires the most recent Gamelogs file, a file that is created after you have started the game.\n" +
-                    "Please start the game before continuing.", "Start game before continuing", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Note: This program requires the most recent Gamelogs file, a file that is created after you load into your character.\n" +
+                                "Please start the game and select your character before continuing."
+                                , "Start game before continuing", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                return;
             }
 
             using (OpenFileDialog diag = new OpenFileDialog
             {
                 Title = "Please select your most recent Gamelogs file.",
-                InitialDirectory = Environment.SpecialFolder.MyDocuments.ToString() + "EVE\\logs\\Gamelogs",
+                InitialDirectory = Environment.SpecialFolder.CommonDocuments + "EVE\\logs\\Gamelogs",
                 DefaultExt = ".txt",
                 Filter = ".txt|*.txt"
             })
             {
                 diag.ShowDialog();
 
-                if (!String.IsNullOrWhiteSpace(diag.FileName))
-                {
-                    file = diag.FileName;
-                    PresenceTimer.Enabled = true;
-                    client.Initialize();
-                    PresenceTimer_Tick(sender, e);
-                }
+                if (string.IsNullOrWhiteSpace(diag.FileName))
+                    return;
+
+                file = diag.FileName;
+                PresenceTimer.Enabled = true;
+
+                Client.Initialize();
+                PresenceTimer_Tick(sender, e); // force call once to send update
             }
         }
+
+        #region Helpers
+        private void UncheckOthers(Control check, bool showIngamePres = false)
+        {
+            for (int i = 0; i < Controls.Count; i++)
+            {
+                if (Controls[i].GetType() != typeof(CheckBox) || Controls[i] == check || Controls[i].Name == "EnglishPresCB" || Controls[i].Name == "IngamePresCB")
+                    continue;
+
+                ((CheckBox)Controls[i]).Checked = false;
+            }
+
+            SaveSettings(check.Name, true);
+            PresLangQuestion.Visible = true;
+            EnglishPresCB.Visible = true;
+            IngamePresCB.Visible = showIngamePres;
+        }
+
+        private void SaveSettings(string newSetting, bool isGameLang)
+        {
+            // first line is the game's language, second line is presence language
+            string[] currentSettings;
+
+            try
+            {
+                currentSettings = File.ReadAllLines(LanguageSettings);
+            }
+            catch (FileNotFoundException)
+            {
+                currentSettings = new[] { "", "" };
+            }
+
+            File.WriteAllLines(LanguageSettings,
+                isGameLang ? new[] { newSetting, currentSettings[1] } : new[] { currentSettings[0], newSetting });
+        }
+        #endregion
 
         #region CheckedChangedEvent
         private void EnglishPresCB_CheckedChanged(object sender, EventArgs e)
         {
-            if (englishPresCB.Checked == true)
-            {
-                if (ingame.Checked == true)
-                    ingame.Checked = false;
+            if (!EnglishPresCB.Checked)
+                return;
 
-                File.WriteAllText(settings + "presenceSettings.txt", "english");
-                Browse.Visible = true;
-            }
+            IngamePresCB.Checked = false;
+
+            SaveSettings("english", false);
+            Browse.Visible = true;
         }
 
         private void IngameCB_CheckedChanged(object sender, EventArgs e)
         {
-            if (ingame.Checked == true)
-            {
-                if (englishPresCB.Checked == true)
-                    englishPresCB.Checked = false;
+            if (!IngamePresCB.Checked)
+                return;
 
-                File.WriteAllText(settings + "presenceSettings.txt", "ingame");
-                Browse.Visible = true;
-            }
-        }
+            EnglishPresCB.Checked = false;
 
-        private void Russian_CheckedChanged(object sender, EventArgs e)
-        {
-            if (Russian.Checked == true)
-            {
-                if (French.Checked == true || German.Checked == true || Japanese.Checked == true || English.Checked == true)
-                {
-                    French.Checked = false;
-                    German.Checked = false;
-                    Japanese.Checked = false;
-                    English.Checked = false;
-
-                    Russian.Checked = true;
-                    File.WriteAllText(settings + "language.txt", "russian");
-                    ingame.Visible = false;
-                    PresenceLanguage.Visible = true;
-                    englishPresCB.Visible = true;
-                }
-                else
-                {
-                    Russian.Checked = true;
-                    File.WriteAllText(settings + "language.txt", "russian");
-                    ingame.Visible = false;
-                    PresenceLanguage.Visible = true;
-                    englishPresCB.Visible = true;
-                }
-            }
-        }
-
-        private void German_CheckedChanged(object sender, EventArgs e)
-        {
-            if (German.Checked == true)
-            {
-                if (French.Checked == true || Russian.Checked == true || Japanese.Checked == true || English.Checked == true)
-                {
-                    French.Checked = false;
-                    Russian.Checked = false;
-                    Japanese.Checked = false;
-                    English.Checked = false;
-
-                    German.Checked = true;
-                    File.WriteAllText(settings + "language.txt", "german");
-                    ingame.Visible = false;
-                    PresenceLanguage.Visible = true;
-                    englishPresCB.Visible = true;
-                }
-                else
-                {
-                    German.Checked = true;
-                    File.WriteAllText(settings + "language.txt", "german");
-                    ingame.Visible = false;
-                    PresenceLanguage.Visible = true;
-                    englishPresCB.Visible = true;
-                }
-            }
-        }
-
-        private void French_CheckedChanged(object sender, EventArgs e)
-        {
-            if (French.Checked == true)
-            {
-                if (German.Checked == true || Russian.Checked == true || Japanese.Checked == true || English.Checked == true)
-                {
-                    German.Checked = false;
-                    Russian.Checked = false;
-                    Japanese.Checked = false;
-                    English.Checked = false;
-
-                    French.Checked = true;
-                    File.WriteAllText(settings + "language.txt", "french");
-                    ingame.Visible = true;
-                    PresenceLanguage.Visible = true;
-                    englishPresCB.Visible = true;
-                }
-                else
-                {
-                    French.Checked = true;
-                    File.WriteAllText(settings + "language.txt", "french");
-                    ingame.Visible = true;
-                    PresenceLanguage.Visible = true;
-                    englishPresCB.Visible = true;
-                }
-            }
-        }
-
-        private void Japanese_CheckedChanged(object sender, EventArgs e)
-        {
-            if (Japanese.Checked == true)
-            {
-                if (French.Checked == true || Russian.Checked == true || German.Checked == true || English.Checked == true)
-                {
-                    French.Checked = false;
-                    Russian.Checked = false;
-                    German.Checked = false;
-                    English.Checked = false;
-
-                    Japanese.Checked = true;
-                    File.WriteAllText(settings + "language.txt", "japanese");
-                    ingame.Visible = false;
-                    PresenceLanguage.Visible = true;
-                    englishPresCB.Visible = true;
-                }
-                else
-                {
-                    Japanese.Checked = true;
-                    File.WriteAllText(settings + "language.txt", "japanese");
-                    ingame.Visible = false;
-                    PresenceLanguage.Visible = true;
-                    englishPresCB.Visible = true;
-                }
-            }
+            SaveSettings("ingame", false);
+            Browse.Visible = true;
         }
 
         private void English_CheckedChanged(object sender, EventArgs e)
         {
-            if (English.Checked == true)
-            {
-                if (French.Checked == true || Russian.Checked == true || German.Checked == true || Japanese.Checked == true)
-                {
-                    French.Checked = false;
-                    Russian.Checked = false;
-                    German.Checked = false;
-                    Japanese.Checked = false;
+            if (English.Checked)
+                UncheckOthers(English, true);
+        }
 
-                    English.Checked = true;
-                    File.WriteAllText(settings + "language.txt", "english");
-                    ingame.Visible = false;
-                    PresenceLanguage.Visible = false;
-                    englishPresCB.Visible = false;
-                    Browse.Visible = true;
-                }
-                else
-                {
-                    English.Checked = true;
-                    File.WriteAllText(settings + "language.txt", "english");
-                    ingame.Visible = false;
-                    PresenceLanguage.Visible = false;
-                    englishPresCB.Visible = false;
-                    Browse.Visible = true;
-                }
-            }
+        private void French_CheckedChanged(object sender, EventArgs e)
+        {
+            if (French.Checked)
+                UncheckOthers(French, true);
+        }
+
+        private void Russian_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Russian.Checked)
+                UncheckOthers(Russian);
+        }
+
+        private void German_CheckedChanged(object sender, EventArgs e)
+        {
+            if (German.Checked)
+                UncheckOthers(German);
+        }
+
+        private void Japanese_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Japanese.Checked)
+                UncheckOthers(Japanese);
         }
         #endregion
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            client.ClearPresence();
-            client.Dispose();
+            // ReSharper disable once InvertIf
+            if (Client.IsInitialized)
+            {
+                Client.ClearPresence();
+                Client.Dispose();
+            }
         }
     }
 }
