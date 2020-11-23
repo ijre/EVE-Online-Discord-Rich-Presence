@@ -9,16 +9,21 @@ namespace eve_discord_rpc
 {
     public partial class MainForm : Form
     {
-        private readonly string LanguageSettings = $"{Application.StartupPath}\\Settings\\LanguageSettings.txt";
+        #region Globals
         private readonly DiscordRpcClient Client = new DiscordRpcClient("688787694498611260");
+        private readonly string LanguageSettings = $"{Application.StartupPath}\\Settings\\LanguageSettings.txt";
+
         private string file = "";
 
-        enum ActionSearchReturnTypes
+        private Language CurrentLanguage;
+        private int[] PreviousAction = { 0, 0 };
+        #endregion // Globals
+
+        private enum ActionTypes
         {
-            JUMPING = 1,
+            JUMPING,
             UNDOCKING,
-            DOCKING,
-            ERROR
+            DOCKING
         }
 
         public MainForm()
@@ -74,13 +79,18 @@ namespace eve_discord_rpc
         }
 
         #region PresenceHelpers
-        private int[] FindLastAction(string[] data, string jump, string undock, string dock)
+        private int[] FindLastAction(string[] data)
         {
+            var jump = CurrentLanguage.GetStringsFromActionType(ActionTypes.JUMPING)[0];
+            var undock = CurrentLanguage.GetStringsFromActionType(ActionTypes.UNDOCKING)[0];
+            var dock = CurrentLanguage.GetStringsFromActionType(ActionTypes.DOCKING)[0];
+            // using shorter names for readability
+
             int jumpLoc = -1;
             int undockLoc = -1;
             int dockLoc = -1;
 
-            for (int i = 0; i < data.Length; i++)
+            for (int i = PreviousAction[0]; i < data.Length; i++)
             {
                 if (jumpLoc != -1 && undockLoc != -1 && dockLoc != -1)
                     break;
@@ -101,22 +111,24 @@ namespace eve_discord_rpc
 
             if (jumpLoc > undockLoc && jumpLoc > dockLoc)
             {
-                return new[] { jumpLoc, 1 };
+                return new[] { jumpLoc, 0 };
             }
             if (undockLoc > jumpLoc && undockLoc > dockLoc)
             {
-                return new[] { undockLoc, 2 };
+                return new[] { undockLoc, 1 };
             }
             if (dockLoc > jumpLoc && dockLoc > undockLoc)
             {
-                return new[] { dockLoc, 3 };
+                return new[] { dockLoc, 2 };
             }
 
-            return new[] { 0, 4 };
+            return new[] { 0, 3 };
         }
 
-        private string GetStringBetween(string main, string before, string after, bool getLocalized)
+        private string GetStringBetween(string main, string before, string after)
         {
+            bool getLocalized = main.Contains("localized hint") && EnglishPresCB.Checked;
+
             if (!getLocalized && main.Contains("localized hint"))
             {
                 main = main.Remove(main.IndexOf("<localized hint=", main.LastIndexOf(before)),
@@ -146,7 +158,7 @@ namespace eve_discord_rpc
 #if _NDEBUG
                 Client.SetPresence(new RichPresence
                 {
-                    Details = "Tell this user they left their RPC program up for EVE Online!",
+                    Details = CurrentLanguage.m_DetailsStrings[1],
                     Assets = new Assets
                     {
                         LargeImageKey = "cover",
@@ -158,203 +170,33 @@ namespace eve_discord_rpc
 #endif
             }
 
-            string details = $"Playing EVE, under the name: \"{charName}\"";
+            int[] mostRecentAction = FindLastAction(dataArray);
+            string data = dataArray[mostRecentAction[0]];
+            var mostRecentActionType = (ActionTypes)mostRecentAction[1];
+
+            var actionStrings = CurrentLanguage.GetStringsFromActionType(mostRecentActionType);
+
+            string details = $"{CurrentLanguage.m_DetailsStrings[0]} {charName}";
             string state = "";
 
-            #region PresenceSetting
-            if (English.Checked)
+            if (mostRecentActionType < ActionTypes.DOCKING)
             {
-                int[] mostRecentAction = FindLastAction(dataArray, "Jumping", "Undocking", " dock ");
-                var mostRecentActionType = (ActionSearchReturnTypes)mostRecentAction[1];
-
-                string data = dataArray[mostRecentAction[0]];
-
-                switch (mostRecentActionType)
-                {
-                    case ActionSearchReturnTypes.ERROR:
-                        return;
-                    case ActionSearchReturnTypes.JUMPING:
-                    {
-                        state = $"Flying in: {data.Substring(data.LastIndexOf(" to ") + 4)}";
-                        break;
-                    }
-                    case ActionSearchReturnTypes.UNDOCKING:
-                    {
-                        state = $"Flying in: {GetStringBetween(data, " to ", " solar ", false)}";
-                        break;
-                    }
-                    case ActionSearchReturnTypes.DOCKING:
-                    {
-                        for (int i = mostRecentAction[0]; i < dataArray.Length; i++)
-                        {
-                            if (!dataArray[i].Contains("accepted"))
-                                continue;
-
-                            state = $"Docked at station: {GetStringBetween(data, " at ", " station", false)}";
-
-                            break;
-                        }
-
-                        if (string.IsNullOrWhiteSpace(state))
-                            return;
-
-                        break;
-                    }
-                }
+                state = $"{CurrentLanguage.m_StateStrings[0]} {GetStringBetween(data, actionStrings[1], actionStrings[2])}";
             }
-            else if (French.Checked)
+            else if (mostRecentActionType == ActionTypes.DOCKING)
             {
-                // Saute = jump
-                // Part de = undock
-                // amarrer = dock (in request)
-                // amarrage = dock (in request acceptance)
-                // acceptée = accepted
-
-                int[] mostRecentAction = FindLastAction(dataArray, "Saute de", "Part de", "s'amarrer");
-                var mostRecentActionType = (ActionSearchReturnTypes)mostRecentAction[1];
-
-                string data = dataArray[mostRecentAction[0]];
-
-                bool usingEnglishTooltips = data.Contains("localized hint") && EnglishPresCB.Checked;
-
-                switch (mostRecentActionType)
+                for (int i = mostRecentAction[0]; i < dataArray.Length; i++)
                 {
-                    case ActionSearchReturnTypes.ERROR:
-                        return;
-                    case ActionSearchReturnTypes.JUMPING:
-                    {
-                        state = (EnglishPresCB.Checked ? "Flying in: " : "En volant dans: ") + GetStringBetween(data, "à ", "*", usingEnglishTooltips);
-                        break;
-                    }
-                    case ActionSearchReturnTypes.UNDOCKING:
-                    {
-                        state = (EnglishPresCB.Checked ? "Flying in: " : "En volant dans: ") + GetStringBetween(data, " solaire ", "*.", usingEnglishTooltips);
-                        break;
-                    }
-                    case ActionSearchReturnTypes.DOCKING:
-                    {
-                        for (int i = mostRecentAction[0]; i < dataArray.Length; i++)
-                        {
-                            if (!dataArray[i].Contains("acceptée"))
-                                continue;
+                    if (!dataArray[i].Contains(actionStrings[3]))
+                        continue;
 
-                            state = (EnglishPresCB.Checked ? "Docked at station: " : "Amarré(e) à la station: ") + GetStringBetween(data, "station ", "*", usingEnglishTooltips);
-
-                            break;
-                        }
-
-                        if (string.IsNullOrWhiteSpace(state))
-                            return;
-
-                        break;
-                    }
+                    state = $"{CurrentLanguage.m_StateStrings[1]} {GetStringBetween(data, actionStrings[1], actionStrings[2])}";
+                    break;
                 }
 
-                if (IngamePresCB.Checked)
-                    details = $"Jouer à EVE, sous le nom: \"{charName}\"";
-            }/*
-            else if (Russian.Checked)
-            {
-                // Осуществляется = jump
-                // Выход из дока = undock
-                // Запрос входа в док = dock request
-                if (data.LastIndexOf("Осуществляется") > data.LastIndexOf("Выход из дока") && data.LastIndexOf("Осуществляется") > data.LastIndexOf("Запрос входа в док"))
-                {
-                    var half = data.Substring(data.LastIndexOf("Осуществляется"), data.IndexOf("*", data.LastIndexOf("Осуществляется")) - data.LastIndexOf("Осуществляется"));
-                    var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - half.IndexOf("\"")) - 1);
-
-                    state = $"Flying in: {full}";
-                }
-                else if (data.LastIndexOf("Выход из дока") > data.LastIndexOf("Осуществляется") && data.LastIndexOf("Выход из дока") > data.LastIndexOf("Запрос входа в док"))
-                {
-                    var half = data.Substring(data.LastIndexOf("Выход из дока"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Выход из дока")) + 1) - data.LastIndexOf("Выход из дока"));
-                    var mouthfull = half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("\"", (half.IndexOf("\"") + 1)) + 1));
-                    var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1)) - (mouthfull + 1));
-
-                    state = $"Flying in: {full}";
-                }
-                else if (data.LastIndexOf("Запрос входа в док") > data.LastIndexOf("Выход из дока") && data.LastIndexOf("Запрос входа в док") > data.LastIndexOf("Осуществляется"))
-                {
-                    if (data.Substring(data.LastIndexOf("разрешение")).IndexOf("разрешение на использование дока станции. Приготовьтесь к приему буксира.") != -1)
-                    {
-                        var half = data.Substring(data.LastIndexOf("Запрос входа в док"), data.IndexOf("\"", data.IndexOf("\"", data.LastIndexOf("Запрос входа в док")) + 1));
-                        var full = half.Substring(half.IndexOf("\"") + 1, (half.LastIndexOf("\"") - 1) - half.IndexOf("\""));
-
-
-                        state = $"Docked at: {full}";
-                    }
-                }
-                else
-                    details = $"Idle{(String.IsNullOrWhiteSpace(charName) ? "" : $", under the name: {charName}")}";
+                if (string.IsNullOrEmpty(state))
+                    return;
             }
-            else if (German.Checked)
-            {
-                // Springe = jump
-                // Abdocken = undock
-                // Andockerlaubnis = dock request
-                if (data.LastIndexOf("Abdocken") > data.LastIndexOf("Andockerlaubnis") && data.LastIndexOf("Abdocken") > data.LastIndexOf("Springe"))
-                {
-                    var half = data.Substring(data.LastIndexOf("Abdocken"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Abdocken")) + 1) - data.LastIndexOf("Abdocken"));
-                    var mouthfull = half.IndexOf("\"", half.IndexOf("\"") + (half.IndexOf("\"", half.IndexOf("\"") + 1)));
-                    var full = half.Substring(mouthfull + 1, (half.IndexOf("\"", mouthfull + 1) - mouthfull) - 1);
-
-
-                    state = $"Flying in: {full}";
-                }
-                else if (data.LastIndexOf("Springe") > data.LastIndexOf("Andockerlaubnis") && data.LastIndexOf("Springe") > data.LastIndexOf("Abdocken"))
-                {
-                    var half = data.Substring(data.LastIndexOf("Springe"), data.IndexOf("*", data.IndexOf("*", data.LastIndexOf("Springe")) + 1) - data.LastIndexOf("Springe"));
-                    var full = half.Substring(half.IndexOf("\"", half.IndexOf("nach")) + 1, half.IndexOf("\"", half.IndexOf("\"", half.IndexOf("nach")) + 1) - half.IndexOf("\"", half.IndexOf("nach")) - 1);
-
-
-                    state = $"Flying in: {full}";
-                }
-                else if (data.LastIndexOf("Andockerlaubnis") > data.LastIndexOf("Abdocken") && data.LastIndexOf("Andockerlaubnis") > data.LastIndexOf("Springe"))
-                {
-                    if (data.Substring(data.LastIndexOf("akzeptiert")).IndexOf("akzeptiert. Ihr Schiff") == 0)
-                    {
-                        var full = data.Substring(data.LastIndexOf("Andockerlaubnis"), data.IndexOf("\"", data.IndexOf("\"", data.LastIndexOf("Andockerlaubnis")) + 1) - data.LastIndexOf("Andockerlaubnis"));
-
-
-                        state = $"Docked at station: {full}";
-                    }
-                }
-                else
-                    details = $"Idle{(String.IsNullOrWhiteSpace(charName) ? "" : $", under the name: {charName}")}";
-            }
-            else if (Japanese.Checked)
-            {
-                // ステーションに入港許可を申請 = dock request
-                // へ出港 = undock(ing)
-                // へジャンプ中 = jump
-                if (data.LastIndexOf("へ出港") > data.LastIndexOf("ステーションに入港許可を申請") && data.LastIndexOf("へ出港") > data.LastIndexOf("へジャンプ中"))
-                {
-                    var full = data.Substring(data.IndexOf("\"", data.LastIndexOf(" から ")) + 1, data.IndexOf("\"", data.IndexOf("\"", data.LastIndexOf(" から ")) + 1) - data.IndexOf("\"", data.LastIndexOf(" から ")) - 1);
-
-
-                    state = $"Flying in: {full}";
-                }
-                else if (data.LastIndexOf("へジャンプ中") > data.LastIndexOf("へ出港") && data.LastIndexOf("へジャンプ中") > data.LastIndexOf("ステーションに入港許可を申請"))
-                {
-                    var full = data.Substring(data.LastIndexOf("\"", data.LastIndexOf("\"", data.LastIndexOf("へジャンプ中")) - 1) + 1, data.LastIndexOf("\"", data.LastIndexOf("へジャンプ中")) - data.LastIndexOf("\"", data.LastIndexOf("\"", data.LastIndexOf("へジャンプ中")) - 1) - 1);
-
-
-                    state = $"Flying in: {full}";
-                }
-                else if (data.LastIndexOf("ステーションに入港許可を申請") > data.LastIndexOf("へ出港") && data.LastIndexOf("ステーションに入港許可を申請") > data.LastIndexOf("へジャンプ中"))
-                {
-                    if (data.LastIndexOf("入港許可申請が許可されました。ステーション内に牽引されます") > data.LastIndexOf("ステーションに入港許可を申請"))
-                    {
-                        var full = data.Substring(data.LastIndexOf("\"", data.LastIndexOf("\"", data.LastIndexOf("ステーションに入港許可を申請")) - 1) + 1, data.LastIndexOf("\"", data.LastIndexOf("ステーションに入港許可を申請")) - data.LastIndexOf("\"", data.LastIndexOf("\"", data.LastIndexOf("ステーションに入港許可を申請")) - 1) - 1);
-
-
-                        state = $"Docked at station: {full}";
-                    }
-                }
-                else
-                    details = $"Idle{(String.IsNullOrWhiteSpace(charName) ? "" : $", under the name: {charName}")}";
-            }*/
-            #endregion
 
 
             Client.SetPresence(new RichPresence
@@ -368,6 +210,7 @@ namespace eve_discord_rpc
                 }
             });
 
+            PreviousAction = mostRecentAction;
             ParsingBox.Text = "Rich Presence set!";
         }
 
@@ -403,30 +246,66 @@ namespace eve_discord_rpc
                     return;
 
                 file = diag.FileName;
-                PresenceTimer.Enabled = true;
 
                 if (!Client.IsInitialized)
                     Client.Initialize();
 
+                PresenceTimer.Enabled = true;
                 PresenceTimer_Tick(sender, e); // force call once to send update
             }
         }
 
         #region Helpers
-        private void UncheckOthers(Control check)
+        private void UncheckOthers(CheckBox check)
         {
-            for (int i = 0; i < Controls.Count; i++)
+            for (int i = 0; i < LanguagesPanel.Controls.Count; i++)
             {
-                if (Controls[i].GetType() != typeof(CheckBox) || Controls[i] == check || Controls[i].Name == "EnglishPresCB" || Controls[i].Name == "IngamePresCB")
+                if (LanguagesPanel.Controls[i] == check)
                     continue;
 
-                ((CheckBox)Controls[i]).Checked = false;
+                ((CheckBox)LanguagesPanel.Controls[i]).Checked = false;
             }
 
             SaveSettings(check.Name.ToLower(), true);
             PresLangQuestion.Visible = check.Name != English.Name;
             EnglishPresCB.Visible = check.Name != English.Name;
             IngamePresCB.Visible = check.Name != English.Name;
+
+            switch (check.Name)
+            {
+                case "English":
+                {
+                    CurrentLanguage = new Language(
+                        new[] { "Jumping", " to ", "" },
+                        new[] { "Undocking", " to ", " solar " },
+                        new[] { " dock ", " at ", " station", "accepted" });
+
+                    break;
+                }
+                case "French":
+                {
+                    CurrentLanguage = new Language(
+                        new[] { "Saute de", "à ", "*" },
+                        new[] { "Part de", " solaire ", "*." },
+                        new[] { "s'amarrer", "station ", "*", "acceptée" },
+                        new[] { "Jouer à EVE, sous le nom: ", "Dites cette user on a oublié(e) de fermer le program RPC pour EVE Online!" },
+                        new[] { "En volant dans:", "Amarré(e) à la station:" });
+
+                    break;
+                }
+                case "Russian":
+                {
+                    CurrentLanguage = new Language(
+                        new[] { "Осуществляется", " в ", "*" },
+                        new[] { "Выход из", "систему ", "*" },
+                        new[] { "док на", "станции ", "*", "разрешение" });
+
+                    break;
+                }
+                default:
+                    CurrentLanguage = null;
+                    break;
+            }
         }
 
         private void SaveSettings(string newSetting, bool isGameLang)
@@ -448,7 +327,8 @@ namespace eve_discord_rpc
         }
         #endregion
 
-        #region CheckedChangedEvent
+        #region WinForms Events
+        #region CheckedChanged Events
         private void EnglishPresCB_CheckedChanged(object sender, EventArgs e)
         {
             if (!EnglishPresCB.Checked)
@@ -500,7 +380,7 @@ namespace eve_discord_rpc
             if (Japanese.Checked)
                 UncheckOthers(Japanese);
         }
-        #endregion
+        #endregion // CheckedChanged Events
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -509,6 +389,83 @@ namespace eve_discord_rpc
             {
                 Client.ClearPresence();
                 Client.Dispose();
+            }
+        }
+        #endregion // WinForms Events
+
+        private class Language
+        {
+            private string[] m_JumpActionStrings;
+            private string[] m_UndockActionStrings;
+            private string[] m_DockActionStrings;
+
+            public string[] m_DetailsStrings = { "Playing EVE, under the name:", "Tell this user they left their RPC program for EVE Online up!" };
+            public string[] m_StateStrings = { "Flying in:", "Docked at station:" };
+
+            public Language(string[] JumpActionStrings, string[] UndockActionStrings, string[] DockActionStrings,
+                string[] DetailsStrings = null, string[] StateStrings = null)
+            {
+                DetailsStrings ??= m_DetailsStrings;
+                StateStrings ??= m_StateStrings;
+
+                CheckSize(JumpActionStrings.Length, UndockActionStrings.Length, DockActionStrings.Length,
+                    DetailsStrings.Length, StateStrings.Length);
+
+
+                m_JumpActionStrings = JumpActionStrings;
+                m_UndockActionStrings = UndockActionStrings;
+                m_DockActionStrings = DockActionStrings;
+                m_DetailsStrings = DetailsStrings;
+                m_StateStrings = StateStrings;
+            }
+
+            public string[] GetStringsFromActionType(ActionTypes action)
+            {
+                return action switch
+                {
+                    ActionTypes.JUMPING => m_JumpActionStrings,
+                    ActionTypes.UNDOCKING => m_UndockActionStrings,
+                    ActionTypes.DOCKING => m_DockActionStrings,
+                    _ => new[] { "" }
+                };
+            }
+
+            private static void CheckSize(int jump, int undock, int dock, int details, int state)
+            {
+                string paramName;
+
+                int size = 3;
+                const int sizeDock = 4;
+                const int sizePresStrings = 2;
+
+                if (jump > size)
+                {
+                    paramName = nameof(m_JumpActionStrings);
+                }
+                else if (undock > size)
+                {
+                    paramName = nameof(m_UndockActionStrings);
+                }
+                else if (dock > sizeDock)
+                {
+                    paramName = nameof(m_DockActionStrings);
+                    size = sizeDock;
+                }
+                else if (details > sizePresStrings)
+                {
+                    paramName = nameof(m_DetailsStrings);
+                    size = sizePresStrings;
+                }
+                else if (state > sizePresStrings)
+                {
+                    paramName = nameof(m_StateStrings);
+                    size = sizePresStrings;
+                }
+                else
+                    return;
+
+                throw new ArgumentOutOfRangeException(paramName, "The parameter for an instance of the Language class isn't the correct size." +
+                                                                $"(Must be {size})");
             }
         }
     }
